@@ -9,10 +9,22 @@
                  [ring/ring-devel "1.1.8"]
                  [ring/ring-core "1.1.8"]
 
+                 [org.clojure/clojurescript "0.0-2280"]
+                 [om "0.7.0"]
+                 [com.facebook/react "0.11.1"]
+
                  [org.clojure/tools.nrepl "0.2.3"]
                  [cider/cider-nrepl "0.7.0-SNAPSHOT"]]
 
-  :plugins []
+  :plugins [[lein-cljsbuild "1.0.3"]]
+  :cljsbuild {:builds
+              [{:source-paths ["src-cljs"]
+                :compiler {
+                           :output-to "resources/public/js/groops.js"
+                           :optimizations :whitespace
+                           ;;:source-map true
+                           :pretty-print true}}]}
+
 
   :profiles {:dev {:dependencies [[javax.servlet/servlet-api "2.5"]
                                   [ring-mock "0.1.5"]]}}
