@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Groops Room</title>
+
+    <!-- Bootstrap -->
+		<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap.min.css">
+
+		<!-- Optional theme -->
+		<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap-theme.min.css">
+
+    <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
+    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+    <!--[if lt IE 9]>
+				<script src="https://oss.maxcdn.com/html5shiv/3.7.2/html5shiv.min.js"></script>
+				<script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
+				<![endif]-->
+  </head>
+  <body>
+
+<div id="room">
+    <div class="navbar navbar-default navbar-fixed-top" role="navigation">
+      <a href="/main" class="btn btn-sm btn-default" title="Back to list"><span class="glyphicon glyphicon-chevron-left"></span></a>
+      <span class="grp-room-name"><%= name %></span>
+    </div>
+
+    <div class="body">
+      <table id="messages" class="table table-striped">
+        <tbody>
+        <% for (var i=0; i < messages.length; i++) { %>
+          <tr>
+            <td>
+              <img src="<%= messages[i].author.img %>" align="left" class="grp-gravatar">
+              <%= messages[i].content %><br><span class="name"><%= messages[i].author.name %></span>
+            </td>
+          </tr>
+        <% } %>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="compose">
+      <div class="input-group">
+        <input type="text" class="form-control" name="message" placeholder="Type message...">
+        <span class="input-group-btn">
+          <button id="send" class="btn btn-success" type="submit">Send</button>
+        </span>
+      </div>
+    </div>
+  </div>
+
+  <script>
+  // Tiny helper to keep the list scrolled to the bottom on each new message
+  function scrollBody() {
+    $('.body').animate({
+      scrollTop: $('#messages').height()
+    }, 200);
+  }
+
+  // EJS auto-escaoes content rendered from the server, but since we
+  // are dynamically appending raw content in socket event handlers it's
+  // up to us to escape the content manually to avoid XSS and other nastiness.
+  function htmlEscape(str) {
+    return String(str)
+      .replace(/&/g, '&amp;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#39;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;');
+  }
+
+  // Since this can be executed from multiple event handlers we pulled the
+  // logic for posting a message into its own helper function.
+  function postMessage(msg) {
+    msg = $.trim(msg || $('input[name=message]').val());
+
+    // It the message is blank skip
+    if (msg.length) {
+      $.ajax({
+        url: '/api/room/<%= room_id %>/message',
+        method: 'POST',
+        context: this,
+        data: {
+          message: msg,
+          author: '<%= user_id %>'
+        }
+      })
+        .success(function (data) {
+          // Clear the input for the next message
+          $('input[name=message]').val('');
+        });
+    }
+    else {
+      $('input[name=message]').val('');
+    }
+  }
+
+  $(function() {
+    // Immediately scroll the list to the bottom on load
+    scrollBody();
+
+    // Handle the "Send" button click event
+    $('#send').on('click', function () {
+      postMessage();
+    });
+    // Handle the ENTER keydown event in the message input
+    $('input[name=message]').on('keydown', function (e) {
+      if (e.keyCode === 13 /* ENTER */) {
+        postMessage();
+      }
+    });
+
+    // Init socket.io so that we're ready to handle events
+    var socket = io();
+
+    // Notify the server (and other clients) that we have joined this room
+    socket.emit('join', {
+      room: '<%= room_id %>',
+      user: '<%= user_id %>'
+    });
+
+    // Once we have joined the room, set up a proper communication channel
+    socket.on('joined', function() {
+
+      // When a message changes state, update the UI accordingly
+      socket.on('message', function(data) {
+        if (data.action === 'create') {
+          // console.log('Message created', data);
+          var row = '<tr><td><img src="' + data.message.author.img +
+            '" align="left" class="grp-gravatar">' +
+            htmlEscape(data.message.content) + '<br><span class="name">' +
+            htmlEscape(data.message.author.name) + '</span></td></tr>';
+
+          $('#messages > tbody:last').append(row);
+          scrollBody();
+        }
+      });
+
+      // TODO: When a user's status changes, update the UI accordingly
+      socket.on('user', function(data){
+        if (data.action === 'join'){
+          console.log('A new user joined the room', data);
+        }
+        else {
+          console.log('A user left the room', data);
+        }
+      });
+    });
+
+    // If there's an error, let the user know (ideally more nicely than this...)
+    socket.on('exception',function(msg){
+      alert(msg);
+    });
+  });
+  </script>
+
+    <!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
+    <!-- Include all compiled plugins (below), or include individual files as needed -->
+		<!-- Latest compiled and minified JavaScript -->
+		<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.2.0/js/bootstrap.min.js"></script>
+
+  </body>
+</html>
