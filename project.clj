@@ -3,6 +3,7 @@
   :url "https://github.com/AustinClojure/groops"
 
   :dependencies [[org.clojure/clojure "1.6.0"]
+                 [cheshire "5.3.1"]
                  [compojure "1.1.8"]
                  [http-kit "2.1.16"]
                  [ring/ring-devel "1.1.8"]
