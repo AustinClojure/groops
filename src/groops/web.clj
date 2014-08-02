@@ -1,4 +1,4 @@
-(ns groops.handler
+(ns groops.web
   (:require [compojure.core :refer :all]
             [compojure.handler :as handler]
             [compojure.route :as route]))

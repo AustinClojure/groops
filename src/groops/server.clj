@@ -1,5 +1,5 @@
 (ns groops.server
-  (:require [groops.handler :as handler]
+  (:require [groops.web :as web]
             [ring.middleware.reload :as reload]
             [org.httpkit.server :refer [run-server]]
 
@@ -25,7 +25,7 @@
                       :bind "127.0.0.1"
                       :handler (apply nrepl/default-handler nrepl-middlewares))
 
-  (let [app (-> handler/app
-                 reload/wrap-reload)]
+  (let [app (-> web/app
+                reload/wrap-reload)]
     (run-server app {:port 8080})))
 
