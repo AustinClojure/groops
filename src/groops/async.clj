@@ -14,16 +14,17 @@
 
 
 (defn send-happiness []
-  (println "clients: " (count @clients))
-  (doseq [client @clients]
-    (send! (key client) (generate-string
-                         {:happiness (rand 10)})
-           false)))
+  (let [level             (rand 10)
+        happiness-message (generate-string {:happiness level})
+        active-clients    (keys @clients)]
+    (when (seq active-clients)
+      (println "sending level " level)
+      (doseq [client active-clients]
+        (send! client happiness-message false)))))
 
 (defn send-loop []
   (future (loop []
-            (println "....")
-
+            (send-happiness)
             (Thread/sleep 5000)
             (recur))))
 

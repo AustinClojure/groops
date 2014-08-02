@@ -1,5 +1,6 @@
 (ns groops.server
-  (:require [groops.web :as web]
+  (:require [groops.async :as async]
+            [groops.web :as web]
             [ring.middleware.reload :as reload]
             [org.httpkit.server :refer [run-server]]
 
@@ -24,6 +25,7 @@
   (nrepl/start-server :port 8030
                       :bind "127.0.0.1"
                       :handler (apply nrepl/default-handler nrepl-middlewares))
+  (async/send-loop)
 
   (let [app (-> web/app
                 reload/wrap-reload)]
