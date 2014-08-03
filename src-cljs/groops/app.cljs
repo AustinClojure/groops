@@ -6,7 +6,9 @@
 
 (def view-atom (atom nil))
 
-(def socket (js/WebSocket. "ws://localhost:8080/ws"))
+(def ws-url (str "ws://" (.-host js/location) "/ws"))
+(println "WebSocket destination is" ws-url)
+(def socket (js/WebSocket. ws-url))
 
 (set! (.-onmessage socket)
       (fn [event]
