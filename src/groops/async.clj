@@ -13,18 +13,18 @@
                     (println con " disconnected. status: " status)))))
 
 
-(defn send-happiness []
-  (let [level             (rand 10)
-        happiness-message (generate-string {:happiness level})
-        active-clients    (keys @clients)]
+(defn send-level []
+  (let [level          (int (rand 100))
+        message        (generate-string {:level level})
+        active-clients (keys @clients)]
     (when (seq active-clients)
       (println "sending level " level)
       (doseq [client active-clients]
-        (send! client happiness-message false)))))
+        (send! client message false)))))
 
 (defn send-loop []
   (future (loop []
-            (send-happiness)
+            (send-level)
             (Thread/sleep 5000)
             (recur))))
 

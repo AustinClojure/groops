@@ -1,14 +1,17 @@
 (ns groops.web
-  (:require [compojure.core :refer :all]
+  (:require [clojure.java.io :as io]
+            [compojure.core :refer :all]
             [compojure.handler :refer [site]]
             [compojure.route :as route]
             [groops.async :as async]
-            [clojure.java.io :as io]))
+            [ring.util.response :refer [content-type resource-response]]))
+
 
 (defroutes app-routes
   (GET "/ws" [] async/ws)
-  (GET "/" [] (io/resource "public/home.html"))
-  (GET "/js/react.js" [] (io/resource "react/react.min.js"))
+  (GET "/" [] (-> (resource-response "public/home.html")
+                  (content-type "text/html")))
+  (GET "/js/react.js" [] (resource-response "react/react.min.js"))
 
   (route/resources "/")
   (route/not-found "Not Found"))
