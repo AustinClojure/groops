@@ -11,9 +11,11 @@
   (GET "/ws" [] async/ws)
   (GET "/" [] (-> (resource-response "public/home.html")
                   (content-type "text/html")))
-  (GET "/js/react.js" [] (resource-response "react/react.min.js"))
 
   (route/resources "/")
+  (route/resources "/"   {:root "generated"})
+  (route/resources "/js" {:root "react"})
+
   (route/not-found "Not Found"))
 
 (def app

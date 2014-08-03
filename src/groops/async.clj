@@ -5,12 +5,13 @@
 (def clients (atom {}))
 
 (defn ws [req]
-  (with-channel req con
-    (swap! clients assoc con true)
-    (println con " connected")
-    (on-close con (fn [status]
-                    (swap! clients dissoc con)
-                    (println con " disconnected. status: " status)))))
+  (with-channel req channel
+    (swap! clients assoc channel true)
+    (println channel "connected")
+    (on-close channel
+              (fn [status]
+                (swap! clients dissoc channel)
+                (println channel "disconnected. status: " status)))))
 
 
 (defn send-level []
@@ -18,10 +19,12 @@
         message        (generate-string {:level level})
         active-clients (keys @clients)]
     (when (seq active-clients)
-      (println "sending level " level)
+      (println "sending level" level "to" (count active-clients) "clients")
       (doseq [client active-clients]
         (send! client message false)))))
 
+
+;; TODO this should be core.async
 (defn send-loop []
   (future (loop []
             (send-level)

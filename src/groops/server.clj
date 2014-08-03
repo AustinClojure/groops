@@ -19,7 +19,7 @@
 
 (defn start-webserver []
   (let [app (-> web/app
-                wrap-content-type
+                ;;wrap-content-type
                 wrap-reload)]
     (run-server app {:port http-port})))
 
