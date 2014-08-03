@@ -1,33 +1,39 @@
 (ns groops.server
   (:require [groops.async :as async]
             [groops.web :as web]
-            [ring.middleware.reload :as reload]
+            [ring.middleware.content-type :refer [wrap-content-type]]
+
+            [ring.middleware.reload :refer [wrap-reload]]
             [org.httpkit.server :refer [run-server]]
+            [clojure.tools.nrepl.server :as nrepl]
+            [cider.nrepl :as cider]))
 
-            [cider.nrepl.middleware.classpath]
-            [cider.nrepl.middleware.complete]
-            [cider.nrepl.middleware.info]
-            [cider.nrepl.middleware.inspect]
-            [cider.nrepl.middleware.stacktrace]
-            [cider.nrepl.middleware.trace]
+(def nrepl-port 8030)
+(def http-port  8080)
 
-            [clojure.tools.nrepl.server :as nrepl]))
 
-(def nrepl-middlewares [cider.nrepl.middleware.classpath/wrap-classpath
-                        cider.nrepl.middleware.complete/wrap-complete
-                        cider.nrepl.middleware.info/wrap-info
-                        cider.nrepl.middleware.inspect/wrap-inspect
-                        cider.nrepl.middleware.stacktrace/wrap-stacktrace
-                        cider.nrepl.middleware.trace/wrap-trace])
+(defn start-nrepl []
+    (nrepl/start-server :port nrepl-port
+                        :bind "127.0.0.1"
+                        :handler cider/cider-nrepl-handler))
+
+(defn start-webserver []
+  (let [app (-> web/app
+                ;;wrap-content-type
+                wrap-reload)]
+    (run-server app {:port http-port})))
 
 (defn -main [& args]
-  (println "Starting nrepl on port 8030")
-  (nrepl/start-server :port 8030
-                      :bind "127.0.0.1"
-                      :handler (apply nrepl/default-handler nrepl-middlewares))
-  (async/send-loop)
+  (try
+    (println "Starting nrepl on port" nrepl-port)
+    (start-nrepl)
 
-  (let [app (-> web/app
-                reload/wrap-reload)]
-    (run-server app {:port 8080})))
+    (println "Starting websocket client loop")
+    (async/send-loop)
 
+    (println "Starting webserver on port" http-port)
+    (start-webserver)
+
+    (catch Throwable t
+      (.printStackTrace t)
+      (System/exit 1))))

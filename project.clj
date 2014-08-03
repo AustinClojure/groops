@@ -20,7 +20,7 @@
   :cljsbuild {:builds
               [{:source-paths ["src-cljs"]
                 :compiler {
-                           :output-to "resources/public/js/groops.js"
+                           :output-to "resources/generated/js/groops.js"
                            :optimizations :whitespace
                            ;;:source-map true
                            :pretty-print true}}]}
