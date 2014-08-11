@@ -1,8 +1,11 @@
 (ns groops.app
-  (:require [om.core :as om :include-macros true]
-            [om.dom :as dom :include-macros true]))
+  (:require [kioo.om :refer [content set-style set-attr do-> substitute listen]]
+            [kioo.core :refer [handle-wrapper]]
+            [om.core :as om :include-macros true]
+            [om.dom :as dom :include-macros true])
+  (:require-macros [kioo.om :refer [defsnippet deftemplate]]))
 
-(enable-console-print!)
+(enable-console-print!) 
 
 (def view-atom (atom nil))
 
@@ -16,7 +19,19 @@
               data      (js->clj json-data :keywordize-keys true)]
           (reset! view-atom data))))
 
+;;; We can manipulate these templates once we begin storing data
+(deftemplate intro "public/intro.html" [data] {})
 
+(deftemplate join "public/join.html" [data] {})
+
+(deftemplate room "public/room.html" [data] {})
+
+(defn init [template] 
+  (fn [data]
+    (om/component (template data))))
+ 
+(def app-state (atom {})) 
+   
 (defn happy-view [data owner]
   (reify
     om/IRender
@@ -36,8 +51,10 @@
                                                  :style #js {:width "100%"}}
                                             "Loading..."))))))))
 
-(when-let [target (.getElementById js/document "om")]
-  (om/root happy-view
-           view-atom
-           {:target target}))
-
+(when-let [pathname (.-pathname (.-location js/window))]
+  (case pathname
+    "/join" (om/root (init join) app-state {:target (.-body js/document)})
+    "/room" (om/root (init room) app-state {:target (.-body js/document)})
+    "/" (om/root (init intro) app-state {:target (.-body js/document)})
+    "/test" (om/root happy-view view-atom {:target (.getElementById js/document "om")})))
+ 
