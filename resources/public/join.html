@@ -26,14 +26,28 @@
 			</div>
 
 			<div class="row">
-				<img src="<%= user.gravatarUrl %>" class="grp-gravatar">
-				<div style="margin-left: 120px;">
-					<p><strong><%= user.name %></strong></p>
-					<p><%= user.email %></p>
-					<% if (user.twitter) { %>
-          <p><a href="https://twitter.com/<%= user.twitter %>" target="blank">@<%= user.twitter %></a></p>
-					<% } %>
-				</div>
+				<table class="table">
+					<tr>
+						<td rowspan="3" style="width: 80px; border-top: none;" id="gravatar">
+							<img src="http://www.gravatar.com/avatar/00000000000000000000000000000000" class="grp-gravatar">
+						</td>
+						<td style="padding: 5px 5px 0px 5px; border-top: none;">
+							<p><strong><span class="username">username</span></strong></p>
+						</td>
+					</tr>
+					<tr>
+						<td style="padding: 0px 5px; border-top: none;">
+							<p><span class="email">user@email.com</span></p>
+						</td>
+					</tr>
+					<tr>
+						<td style="padding: 0px 5px; border-top: none;">					
+							<p><a href="https://twitter.com/" target="blank">@<span class="twitterhandle">twitterhandle</span></a></p>
+						</td>
+					</tr>
+					
+					
+				</table>
 			</div>
 
 			<div class="row" style="padding-top:25px;">
@@ -51,7 +65,6 @@
 
 			<div class="row">
 				<h3>Available Rooms</h3>
-				<% if (rooms.length > 0) { %>
         <table class="table table-striped table-bordered table-condensed">
           <thead>
             <tr>
@@ -60,19 +73,18 @@
               <td class="centered">Join</td>
             </tr>
           </thead>
-          <tbody>
-						<% for (var i=0; i < rooms.length; i++) { %>
-							 <tr>
-								 <td width="100%"><%= rooms[i].name %></td>
-								 <td class="centered"><%= rooms[i].users %></td>
-								 <td class="centered"><a href="./room/<%= rooms[i].id %>" class="btn btn-primary btn-sm">Join</a></td>
-							 </tr>
-							 <% } %>
-          </tbody>
-        </table>
-				<% } else { %>
-    <p><em class="text-muted">No rooms available right now</em></p>
-    <% } %>
+          <tbody>						
+						<tr>
+							<td width="100%"><span class="roomname">room name</span></td>
+							<td class="centered"><span class="users"rooms users</span></td>
+																				 <td class="centered"><a href="./room/" class="btn btn-primary btn-sm">Join</a></td>
+</tr>
+
+</tbody>
+</table>
+
+<p><em class="text-muted">No rooms available right now</em></p>
+
 </div>
 </div>
 
