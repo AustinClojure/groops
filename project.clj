@@ -13,7 +13,7 @@
                  [kioo "0.4.1-SNAPSHOT"]
                  [com.facebook/react "0.11.1"]
                  [org.clojure/tools.nrepl "0.2.3"]
-                 [cider/cider-nrepl "0.7.0-SNAPSHOT"]]
+                 [cider/cider-nrepl "0.7.0"]]
 
   :plugins [[lein-cljsbuild "1.0.3"]]
   :resource-paths ["resources"]
