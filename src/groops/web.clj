@@ -4,23 +4,60 @@
             [compojure.handler :refer [site]]
             [compojure.route :as route]
             [groops.async :as async]
-            [ring.util.response :refer [content-type resource-response]]))
+            [groops.data :refer [register-user 
+                                 create-room 
+                                 add-user-to-room 
+                                 remove-user-from-room
+                                 push-message
+                                 get-users-in-room
+                                 registry-set
+                                 room-set]]
+            [ring.util.response :refer [content-type resource-response redirect-after-post]]
+            [ring.middleware.params :refer (wrap-params)]
+            [ring.middleware.nested-params :refer (wrap-nested-params)]
+            [ring.middleware.keyword-params :refer (wrap-keyword-params)]
+            [ring.middleware.session :refer (wrap-session)]
+            [ring.middleware.session.store :refer (read-session)]
+            [ring.middleware.reload :refer (wrap-reload)]))
+
+;;; Logging/Debugging
+(defn log-request [req]
+  (println ">>>>" req)) 
+
+(defn wrap-verbose [h]
+  (fn [req]
+    (log-request req)
+    (h req)))
+
+(defn join-page [req]
+  (-> (resource-response )))
 
 (defroutes app-routes
   (GET "/ws" [] async/ws)
   (GET "/test" [] (-> (resource-response "public/home.html")
                       (content-type "text/html")))
   (GET "/" [] (-> (resource-response "public/home.html")
-                       (content-type "text/html")))
-  (GET "/join" [] (-> (resource-response "public/home.html")
-                       (content-type "text/html")))
+                  (content-type "text/html")))
+  (GET "/intro" [] (-> (resource-response "public/home.html")
+                  (content-type "text/html")))
+  (GET "/join" [req] (-> (resource-response "public/home.html")
+                      (content-type "text/html")))
   (GET "/room" [] (-> (resource-response "public/home.html")
                       (content-type "text/html")))
-  ;;;(POST "/register" [req] )  
+  (POST "/register" {{:keys [name email twitter] :as params} :params :as req}
+        (register-user name email twitter)
+        (println @registry-set)
+        (redirect-after-post "/join"))  
   (route/resources "/")
   (route/resources "/"   {:root "generated"})
   (route/resources "/js" {:root "react"})
   (route/not-found "Not Found"))
 
 (def app
-  (site app-routes))
+  (-> (site app-routes)
+      ;;(wrap-verbose)
+      (wrap-keyword-params)
+      (wrap-nested-params)
+      (wrap-params)
+      (wrap-session)
+      (wrap-reload)))
