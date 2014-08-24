@@ -29,6 +29,9 @@
                                 :msg-vect (atom [])})
     (catch Exception e (str "create-room exception: " e))))
 
+(defn get-rooms-list []
+  (keys @room-set))
+
 (defn get-room-map [room]
   (try
     (get @room-set room)
