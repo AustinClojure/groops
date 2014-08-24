@@ -16,9 +16,11 @@
 
 (defn register-user [user email handle]
   (try
-    (swap! registry-set conj {:user-name user 
-                              :email-address email 
-                              :twitter handle})
+    (let [new-user {:user-name user :email-address email :twitter handle}]
+      (swap! registry-set conj {:user-name user 
+                                :email-address email 
+                                :twitter handle})
+      {:user-name user :email-address email :twitter handle})
     (catch Exception e (str "register-user exception: " e))))
 
 (defn create-room [room]

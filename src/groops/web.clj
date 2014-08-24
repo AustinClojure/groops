@@ -32,6 +32,10 @@
 (defn join-page [req]
   (-> (resource-response )))
 
+(defn register [name email twitter]
+  (-> (redirect-after-post "/join")
+      (assoc :session (register-user name email twitter))))
+
 (defroutes app-routes
   (GET "/ws" [] async/ws)
   (GET "/test" [] (-> (resource-response "public/home.html")
@@ -39,22 +43,19 @@
   (GET "/" [] (-> (resource-response "public/home.html")
                   (content-type "text/html")))
   (GET "/intro" [] (-> (resource-response "public/home.html")
-                  (content-type "text/html")))
-  (GET "/join" [req] (-> (resource-response "public/home.html")
-                      (content-type "text/html")))
+                       (content-type "text/html")))
+  (GET "/join" [:as req] (-> (resource-response "public/home.html")
+                             (content-type "text/html")))
   (GET "/room" [] (-> (resource-response "public/home.html")
                       (content-type "text/html")))
-  (POST "/register" {{:keys [name email twitter] :as params} :params :as req}
-        (register-user name email twitter)
-        (println @registry-set)
-        (redirect-after-post "/join"))  
+  (POST "/register" [name email twitter] (register name email twitter))  
   (route/resources "/")
   (route/resources "/"   {:root "generated"})
   (route/resources "/js" {:root "react"})
   (route/not-found "Not Found"))
 
 (def app
-  (-> (site app-routes)
+  (-> (site #'app-routes)
       ;;(wrap-verbose)
       (wrap-keyword-params)
       (wrap-nested-params)
