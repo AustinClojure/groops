@@ -6,6 +6,10 @@
             [groops.middleware :refer [basic-site]]
             [ring.util.response :refer [content-type resource-response]]))
 
+#_(defn register [name email twitter]
+  (-> (redirect-after-post "/join")
+      (assoc :session (register-user name email twitter))))
+
 (defroutes app-routes
   (GET "/ws" [] async/ws)
   api/api-routes

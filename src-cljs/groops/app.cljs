@@ -3,7 +3,9 @@
             [kioo.om :refer [content set-style set-attr do-> substitute listen]]
             [kioo.core :refer [handle-wrapper]]
             [om.core :as om :include-macros true]
-            [om.dom :as dom :include-macros true])
+            [om.dom :as dom :include-macros true]
+            [cljs-hash.md5 :refer [md5]]
+            [clojure.string :refer [trim lower-case replace]])
   (:require-macros [kioo.om :refer [defsnippet deftemplate]]))
 
 (enable-console-print!)
@@ -33,9 +35,6 @@
 
 (def app-state (atom {}))
 
-(defn login-user [user]
-  (swap! app-state assoc :user {:name user}))
-
 (defn post-user [name email twitter]
   (ajax/POST "/api/user"
              {:params {:name name
@@ -45,14 +44,71 @@
               :handler (fn [user]
                          (swap! app-state assoc :user user))
               :error-handler (fn [response]
-                                (println "ERROR!" response))}))
+                               (println "ERROR!" response))}))
+
+(defn post-room [room-name]
+  (ajax/POST "/api/room"
+             {:params {:room-name room-name}
+              :format (ajax/json-format {:keywords? true})
+              :handler (fn [room-name]
+                         (swap! app-state assoc :room room-name))
+              :error-handler (fn [response]
+                               (println "post-room ERROR!" response))}))
+
+#_(defn get-rooms []
+    (ajax/GET "/api/rooms"
+              {:handler (fn [room-list]
+                          (swap! app-state assoc :room-list room-list)
+                          {:room-list @app-state})}))
+
+(defn login-user [] 
+  (let [name (.-value (.getElementById js/document "name"))
+        email (.-value (.getElementById js/document "email"))
+        twitter (.-value (.getElementById js/document "twitter"))]
+    (post-user name email twitter)))  
+
+(defn create-room []
+  (let [room-name (.-value (.getElementById js/document "room-name"))]
+    (post-room room-name)))
+
+#_(defn join-room [room-name] 
+    (swap! app-state :selected-room room-name))
+
+(defn logout-user [user]
+  (swap! app-state dissoc :user :email :twitter))
+
+(defn get-gravatar [email]
+  (if email (str "http://www.gravatar.com/avatar/"  
+                 (-> email
+                     (trim)
+                     (lower-case)
+                     (md5) ))
+      ("http://http://www.gravatar.com/avatar/00000000000000000000000000000000")))
+
+#_(defsnippet room-item-snippet "public/join.html" [:.room-item]
+    [room-name]
+    {[:td.room-name] (content room-name)
+   ;;;[:td.user-count] (content user-count)
+     [:td.join-btn] (listen onClick #(do (.preventDefault %)
+                                         (join-room room-name)))})
 
 ;;; We can manipulate these templates once we begin storing data
-(deftemplate intro "public/intro.html" [data] {})
+(deftemplate intro "public/intro.html" [data] 
+  {[:#submit-btn] (listen :onClick #(do (.preventDefault %)
+                                        (login-user)))})
+
 (deftemplate join "public/join.html" [data]
-  {[:span.username]      (content (get-in data [:user :name]))
-   [:span.email]         (content (get-in data [:user :email]))
-   [:span.twitterhandle] (content (get-in data [:user :twitter]))})
+  {[:span.username] (content (get-in data [:user :name]))   
+   [:span.email] (content (get-in data [:user :email]))   
+   [:a#twitter] (do-> (content (get-in data [:user :twitter]))
+                      (set-attr :href (str "https://twitter.com/" 
+                                           (replace (trim 
+                                                     (get-in data 
+                                                             [:user :twitter])) "@" ""))))
+   [:img#gravatar] (set-attr :src (get-gravatar (get-in data [:user :email])))
+   [:#create-room-btn] (listen :onClick #(do (.preventDefault %)
+                         (create-room)))
+   })
 
 (deftemplate room "public/room.html" [data] {})
 
@@ -61,8 +117,8 @@
     om/IRender
     (render [_]
       (if (:user data)
-        (om/build (init join)  data)
-        (om/build (init intro) data)))))
+        (om/build (init join) data)
+        (om/build (init intro) data) ))))
 
 
 (om/root page-view app-state {:target (.getElementById js/document "om")})

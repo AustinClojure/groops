@@ -22,7 +22,8 @@
 
                  ;; dev
                  [org.clojure/tools.nrepl "0.2.3"]
-                 [cider/cider-nrepl "0.7.0"]]
+                 [cider/cider-nrepl "0.7.0"]
+                 [cljs-hash "0.0.2"]]
 
   :plugins [[lein-cljsbuild "1.0.3"]]
   :resource-paths ["resources"]
@@ -30,8 +31,9 @@
               [{:source-paths ["src-cljs"]
                 :compiler {
                            :output-to "resources/generated/js/groops.js"
+                           :output-dir "resources/generated/js"
                            :optimizations :whitespace
-                           ;;:source-map true
+                           ;;:source-map "resources/generated/js/groops.js.map"
                            :pretty-print true}}]}
 
   :profiles {:dev {:dependencies [[javax.servlet/servlet-api "2.5"]

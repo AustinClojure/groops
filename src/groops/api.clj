@@ -14,9 +14,26 @@
                        (data/register-user name email twitter)
                        {:created-user {:name name :email email :twitter twitter}}))))
 
+(def post-room
+  (resource :allowed-methods [:post]
+            :available-media-types ["application/json"]
+            :handle-created :created-room
+            :post! (fn [ctx]
+                     (let [{:keys [room-name]} (get-in ctx [:request :params])]
+                       (println "POST /api/room" room-name)
+                       (data/create-room room-name)
+                       {:created-room {:room-name room-name}}))))
+
+(def get-rooms
+  (resource :allowed-methods [:get]
+            :available-media-types ["applicaiton/json"]
+            :handle-ok #({:rooms-list  data/get-rooms-list})))
+
 (defroutes api-routes
   (context "/api" []
-           (POST "/user" [] post-user)))
+           (POST "/user" [] post-user)
+           (POST "/room" [] post-room)
+           (GET "/rooms" [] get-rooms)))
 
 
 
