@@ -41,12 +41,12 @@
 						</td>
 					</tr>
 					<tr>
-						<td style="padding: 0px 5px; border-top: none;">					
+						<td style="padding: 0px 5px; border-top: none;">
 							<p><a href="https://twitter.com/" target="blank" id="twitter">twitterhandle</a></p>
 						</td>
 					</tr>
-					
-					
+
+
 				</table>
 			</div>
 
@@ -54,9 +54,9 @@
 				<div class="col-md-6" style="padding:0;">
 					<form role="form" action="create room" method="POST">
 						<div class="input-group">
-							<input type="text" class="form-control" name="room_name" placeholder="Room Name" required>
+							<input id="room-name" type="text" class="form-control" name="room-name" placeholder="Room Name" required>
 							<span class="input-group-btn">
-								<button class="btn btn-primary" type="submit">Create Room</button>
+								<button id="create-room-btn" class="btn btn-primary" type="submit">Create Room</button>
 							</span>
 						</div>
 					</form>
@@ -64,26 +64,25 @@
 			</div>
 
 			<div class="row">
-				<h3>Available Rooms</h3>
-        <table class="table table-striped table-bordered table-condensed">
-          <thead>
-            <tr>
-              <td width="100%">Room</td>
-              <td class="centered">Members</td>
-              <td class="centered">Join</td>
-            </tr>
-          </thead>
-          <tbody>						
-						<tr>
-							<td width="100%"><span class="roomname">room name</span></td>
-							<td class="centered"><span class="users"rooms users</span></td>
-																				 <td class="centered"><a href="./room/" class="btn btn-primary btn-sm">Join</a></td>
-</tr>
+			  <h3>Available Rooms</h3>
+			  <table class="table table-striped table-bordered table-condensed">
+			    <thead>
+			      <tr>
+				<td width="100%">Room</td>
+				<td class="centered">Members</td>
+				<td class="centered">Join</td>
+			      </tr>
+			    </thead>
+			    <tbody class="room-table">
+			      <tr class="row-item">
+				<td width="100%"><span class="roomname">room name</span></td>
+				<td class="centered"><span class="users">rooms users</span></td>
+				<td class="centered"><a href="./room/" class="btn btn-primary btn-sm join-btn">Join</a></td>
+			      </tr>
+			    </tbody>
+			  </table>
 
-</tbody>
-</table>
-
-<p><em class="text-muted">No rooms available right now</em></p>
+			  <p><em class="text-muted">No rooms available right now</em></p>
 
 </div>
 </div>
