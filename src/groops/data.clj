@@ -17,8 +17,8 @@
 (defn register-user [user email handle]
   (try
     (let [new-user {:user-name user :email-address email :twitter handle}]
-      (swap! registry-set conj {:user-name user 
-                                :email-address email 
+      (swap! registry-set conj {:user-name user
+                                :email-address email
                                 :twitter handle})
       {:user-name user :email-address email :twitter handle})
     (catch Exception e (str "register-user exception: " e))))
@@ -49,8 +49,8 @@
 
 (defn push-message [room user message]
   (try
-    (swap! (:msg-vect (get-room-map room)) 
-           conj [(java.util.Date.) 
+    (swap! (:msg-vect (get-room-map room))
+           conj [(java.util.Date.)
                  {:author user :message message}])
     (catch Exception e (str "push-message exception: " e))))
 

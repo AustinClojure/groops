@@ -26,8 +26,10 @@
 
 (def get-rooms
   (resource :allowed-methods [:get]
-            :available-media-types ["applicaiton/json"]
-            :handle-ok #({:rooms-list  data/get-rooms-list})))
+            :available-media-types ["application/json"]
+            :handle-ok (fn [_]
+                         (println "GET /api/rooms")
+                         {:rooms-list (data/get-rooms-list)})))
 
 (defroutes api-routes
   (context "/api" []
