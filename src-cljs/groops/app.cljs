@@ -5,7 +5,7 @@
             [om.core :as om :include-macros true]
             [om.dom :as dom :include-macros true]
             [cljs-hash.md5 :refer [md5]]
-            [clojure.string :refer [trim lower-case replace]])
+            [clojure.string :refer [trim lower-case replace replace-first]])
   (:require-macros [kioo.om :refer [defsnippet deftemplate]]))
 
 (enable-console-print!)
@@ -51,7 +51,8 @@
                :handler (fn [response]
                           (println "GET ROOMS" response)
                           (println "--" (:rooms-list response))
-                          (swap! app-state assoc :rooms-list (:rooms-list response))
+                          (swap! app-state assoc 
+                                 :room-count-map (:room-count-map response))
                           (println "APP STATE IS " app-state))}))
 
 (defn post-room [room-name]
@@ -103,12 +104,16 @@
     (.preventDefault e)
     (action)))
 
+(defn keyword-to-string [keyword]
+  (replace-first (str keyword) ":" ""))
+
+;; ----------------------------------------
 (defsnippet room-item-snippet "public/join.html" [:.row-item]
-  [room-name]
-  {[:span.roomname] (content room-name)
-   ;; [:td.user-count] (content user-count)
+  [room-vect]
+  {[:td.room-name] (content (keyword-to-string (first room-vect)))
+   [:td.user-count] (content (second room-vect))
    [:td.join-btn]  (listen onClick #(do (.preventDefault %)
-                                        (join-room room-name)))})
+                                        (join-room (first room-vect))))})
 
 ;;; We can manipulate these templates once we begin storing data
 (deftemplate intro "public/intro.html" [data]
@@ -124,7 +129,7 @@
                                                              [:user :twitter])) "@" ""))))
    [:img#gravatar] (set-attr :src (get-gravatar (get-in data [:user :email])))
    [:#create-room-btn] (listen :onClick (default-action create-room))
-   [:tbody.room-table] (substitute (map room-item-snippet (:rooms-list data)))})
+   [:tbody.room-table] (substitute (map room-item-snippet (:room-count-map data)))})
 
 (deftemplate room "public/room.html" [data] {})
 

@@ -29,7 +29,7 @@
             :available-media-types ["application/json"]
             :handle-ok (fn [_]
                          (println "GET /api/rooms")
-                         {:rooms-list (data/get-rooms-list)})))
+                         {:room-count-map (data/get-room-count-map)})))
 
 (defroutes api-routes
   (context "/api" []
