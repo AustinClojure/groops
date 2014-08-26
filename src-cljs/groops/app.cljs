@@ -73,14 +73,23 @@
   (let [name (.-value (.getElementById js/document "name"))
         email (.-value (.getElementById js/document "email"))
         twitter (.-value (.getElementById js/document "twitter"))]
-    (post-user name email twitter)))
+    (if (and (not (= name "")) (not (= email "")))
+      (post-user name email twitter)
+      (js/alert "Please complete the name and email fields"))))
 
 (defn create-room []
   (let [room-name (.-value (.getElementById js/document "room-name"))]
     (post-room room-name)))
 
-#_(defn join-room [room-name]
-    (swap! app-state :selected-room room-name))
+(defn join-room [room-name]
+  (do
+    (println "Joining Room: " room-name))
+    (swap! app-state assoc :selected-room room-name))
+
+(defn exit-room []
+  (do
+    (println "Exiting Room!")
+    (swap! app-state dissoc :selected-room)))
 
 (defn logout-user [user]
   (swap! app-state dissoc :user :email :twitter))
@@ -112,8 +121,8 @@
   [room-vect]
   {[:td.room-name] (content (keyword-to-string (first room-vect)))
    [:td.user-count] (content (second room-vect))
-   [:td.join-btn]  (listen onClick #(do (.preventDefault %)
-                                        (join-room (first room-vect))))})
+   [:a.join-btn]  (listen :onClick #(do (.preventDefault %)
+                                        (join-room (keyword-to-string (first room-vect)))))})
 
 ;;; We can manipulate these templates once we begin storing data
 (deftemplate intro "public/intro.html" [data]
@@ -131,14 +140,15 @@
    [:#create-room-btn] (listen :onClick (default-action create-room))
    [:tbody.room-table] (substitute (map room-item-snippet (:room-count-map data)))})
 
-(deftemplate room "public/room.html" [data] {})
+(deftemplate room "public/room.html" [data] 
+  {[:a.back-btn] (listen :onClick (default-action exit-room))
+   [:span#room-name] (content (:selected-room data))})
 
 (defn join-view [data owner]
   (reify
     om/IWillMount
     (will-mount [_]
       (get-rooms))
-
     om/IRender
     (render [_]
       (println "ROOMS data is" data)
@@ -148,9 +158,11 @@
   (reify
     om/IRender
     (render [_]
-      (if (:user data)
-        (om/build join-view data)
-        (om/build (init intro) data) ))))
+      (if (:selected-room data)
+        (om/build (init room) data)
+        (if (:user data)
+          (om/build join-view data)
+          (om/build (init intro) data) )))))
 
 
 (om/root page-view app-state {:target (.getElementById js/document "om")})
