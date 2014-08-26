@@ -37,6 +37,25 @@
     (get @room-set room)
     (catch Exception e (str "get-room-map exception: " e))))
 
+(defn get-room-user-count [room]
+  (try
+    (count (deref (:user-vect (get-room-map room))))
+    (catch Exception e (str "get-room-user-count exception: " e))))
+
+(defn get-room-count-list []
+  (try
+    (let [names (get-rooms-list)
+          counts (map get-room-user-count names)]
+      (reverse (zipmap names counts)))
+    (catch Exception e (str "get-room-count-map exception: " e))))
+
+(defn get-room-count-map []
+  (try
+    (let [names (get-rooms-list)
+          counts (map get-room-user-count names)]
+      (reduce conj (sorted-map) (zipmap names counts)))
+    (catch Exception e (str "get-room-count-map exception: " e))))
+
 (defn add-user-to-room [room user-name]
   (try
     (swap! (:user-vect (get-room-map room)) conj user-name)
