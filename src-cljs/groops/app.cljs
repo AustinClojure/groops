@@ -146,10 +146,14 @@
    [:a.join-btn]  (listen :onClick #(do (.preventDefault %)
                                         (join-room (keyword-to-string (first room-vect)))))})
 
-(defsnippet chat-message "public/room.html" [:tr.chat-message]
-  []
-  {[:span.author] (identity)
-   [:span.message] (identity)})
+(defsnippet chat-message-snippet "public/room.html" [:tr.chat-message]
+  [msg-vect]
+  {[:span.author] (content #(if (msg-vect)
+                              (:user (second msg-vect))
+                              nil))
+   [:span.message] (content #(if (msg-vect)
+                               (:message (second msg-vect))
+                               nil))})
 ;; ----------------------------------------
 (deftemplate intro "public/intro.html" [data]
   {[:#submit-btn] (listen :onClick (default-action login-user))})
@@ -169,6 +173,7 @@
 (deftemplate room "public/room.html" [data] 
   {[:a.back-btn] (listen :onClick (default-action exit-room))
    [:span#room-name] (content (:selected-room data))
+   [:tr.chat-message] (content (map chat-message-snippet (:msg-vect data)))
    [:button#send] (listen :onClick (default-action send-message))})
 
 (defn join-view [data owner]

@@ -53,7 +53,7 @@
            (POST "/user" [] post-user)
            (POST "/room" [] post-room)
            (GET "/rooms" [] get-rooms)
-           (GET "room/messages/:room")
+           (GET "room/messages/:room" [room] get-messages)
            (POST "/room/message" [] post-message)))
 
 

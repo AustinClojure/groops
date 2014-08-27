@@ -75,7 +75,7 @@
 
 (defn get-messages [room]
   (try
-    (:msg-vect (room @room-set))
+    {:msg-vect (room @room-set)}
     (catch Exception e (str "get-messages exception: " e))))
 
 (defn get-users-in-room [room]
