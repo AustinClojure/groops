@@ -5,7 +5,8 @@
             [om.core :as om :include-macros true]
             [om.dom :as dom :include-macros true]
             [cljs-hash.md5 :refer [md5]]
-            [clojure.string :refer [trim lower-case replace replace-first]])
+            [clojure.string :refer [trim lower-case replace replace-first]]
+            [clojure.browser.repl])
   (:require-macros [kioo.om :refer [defsnippet deftemplate]]))
 
 (enable-console-print!)
@@ -56,7 +57,7 @@
                         #_(println "APP STATE IS " app-state))}))
 
 (defn get-messages []
-  (ajax/GET "api/room/messages/Alpha" 
+  (ajax/GET (str  "api/room/messages/" (:selected-room @app-state)) 
             {:format (ajax/json-format {:keywords? true})
              :error-handler (fn [response]
                               (println "get-message ERROR!" response))

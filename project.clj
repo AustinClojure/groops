@@ -27,7 +27,8 @@
                  [cljs-hash "0.0.2"]]
 
   :plugins [[com.cemerick/austin "0.1.5"]
-            [lein-cljsbuild "1.0.3"]]
+            [lein-cljsbuild "1.0.3"]
+            [lein-ring "0.8.8"]]
   :resource-paths ["resources"]
   :cljsbuild {:builds
               [{:source-paths ["src-cljs"]
