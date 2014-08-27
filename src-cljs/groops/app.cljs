@@ -81,7 +81,8 @@
   (ajax/POST (str "/api/room/message")
              {:params {:room (:selected-room @app-state)
                        :user (get-in @app-state [:user :name])
-                       :message message}
+                       :message message
+                       :gravatar-url (:gravatar-url @app-state)}
               :format (ajax/json-format {:keywords? true})
               :handler (fn [resp]
                          (println "POST-MESSAGE resp" resp)
@@ -119,13 +120,23 @@
 (defn logout-user [user]
   (swap! app-state dissoc :user :email :twitter))
 
-(defn get-gravatar [email]
-  (if email (str "http://www.gravatar.com/avatar/"
-                 (-> email
-                     (trim)
-                     (lower-case)
-                     (md5) ))
-      ("http://http://www.gravatar.com/avatar/00000000000000000000000000000000")))
+(defn gravatar [email]
+  (if email 
+    (do
+      (swap! app-state assoc :gravatar-url (str "http://www.gravatar.com/avatar/"
+                                   (-> email
+                                       (trim)
+                                       (lower-case)
+                                       (md5))))
+      (str "http://www.gravatar.com/avatar/"
+                                   (-> email
+                                       (trim)
+                                       (lower-case)
+                                       (md5))))
+    (do
+      (swap! app-state assoc :gravatar-url              
+             ("http://http://www.gravatar.com/avatar/00000000000000000000000000000000"))
+      ("http://http://www.gravatar.com/avatar/00000000000000000000000000000000"))))
 
 ;; ----------------------------------------
 (defn init [template]
@@ -140,6 +151,9 @@
 (defn keyword-to-string [keyword]
   (replace-first (str keyword) ":" ""))
 
+(defn set-focus-on-id [id]
+  (.focus (.getElementById js/document id)))
+
 ;; ----------------------------------------
 (defsnippet room-item-snippet "public/join.html" [:.row-item]
   [room-vect]
@@ -150,7 +164,8 @@
 
 (defsnippet chat-message-snippet "public/room.html" [:tr.chat-message]
   [msg-vect]
-  {[:span.author] (content (:author (second msg-vect)))
+  {[:img] (set-attr :src (:gravatar-url (second msg-vect))) 
+   [:span.author] (content (:author (second msg-vect)))
    [:span.message] (content (:message (second msg-vect)))})
 ;; ----------------------------------------
 (deftemplate intro "public/intro.html" [data]
@@ -164,7 +179,7 @@
                                            (replace (trim
                                                      (get-in data
                                                              [:user :twitter])) "@" ""))))
-   [:img#gravatar] (set-attr :src (get-gravatar (get-in data [:user :email])))
+   [:img#gravatar] (set-attr :src (gravatar (get-in data [:user :email])))
    [:#create-room-btn] (listen :onClick (default-action create-room))
    [:tbody.room-table] (substitute (map room-item-snippet (:room-count-map data)))})
 
@@ -172,7 +187,9 @@
   {[:a.back-btn] (listen :onClick (default-action exit-room))
    [:span#room-name] (content (:selected-room data))
    [:tr.chat-message] (substitute (map chat-message-snippet (:msg-vect data)))
-   [:button#send] (listen :onClick (default-action send-message))})
+   [:button#send] (listen :onClick (default-action send-message))
+   [:input#message] (listen :onKeyDown #(when (= (.-key %) "Enter")
+                                          (send-message)))})
 
 (defn join-view [data owner]
   (reify
