@@ -44,16 +44,27 @@
                                (println "ERROR!" response))}))
 
 (defn get-rooms []
-    (ajax/GET "/api/rooms"
-              {:format (ajax/json-format {:keywords? true})
-               :error-handler (fn [response]
-                                (println "get-rooms ERROR!" response))
-               :handler (fn [response]
-                          (println "GET ROOMS" response)
-                          (println "--" (:rooms-list response))
-                          (swap! app-state assoc 
-                                 :room-count-map (:room-count-map response))
-                          (println "APP STATE IS " app-state))}))
+  (ajax/GET "/api/rooms"
+            {:format (ajax/json-format {:keywords? true})
+             :error-handler (fn [response]
+                              (println "get-rooms ERROR!" response))
+             :handler (fn [response]
+                        ;;(println "GET ROOMS" response)
+                        ;;(println "--" (:rooms-list response))
+                        (swap! app-state assoc 
+                               :room-count-map (:room-count-map response))
+                        #_(println "APP STATE IS " app-state))}))
+
+(defn get-messages []
+  (ajax/GET "api/room/messages/Alpha" 
+            {:format (ajax/json-format {:keywords? true})
+             :error-handler (fn [response]
+                              (println "get-message ERROR!" response))
+             :handler (fn [response]
+                       ;; (println ":get-messages :selected-room" (:selected-room @app-state))
+                       ;; (println "GET MESSAGES:" response)
+                       ;; (println "--" (:msg-vect response))
+                        (swap! app-state assoc :msg-vect (:msg-vect response)))}))
 
 (defn post-room [room-name]
   (ajax/POST "/api/room"
@@ -65,8 +76,17 @@
               :error-handler (fn [response]
                                (println "post-room ERROR!" response))}))
 
-
-
+(defn post-message [message]
+  (ajax/POST (str "/api/room/message")
+             {:params {:room (:selected-room @app-state)
+                       :user (get-in @app-state [:user :name])
+                       :message message}
+              :format (ajax/json-format {:keywords? true})
+              :handler (fn [resp]
+                         (println "POST-MESSAGE resp" resp)
+                         (get-messages))
+              :error-handler (fn [response]
+                               (println "POST-MESSAGE ERROR!:" response))}))
 
 ;; ----------------------------------------
 (defn login-user []
@@ -91,6 +111,10 @@
     (println "Exiting Room!")
     (swap! app-state dissoc :selected-room)))
 
+(defn send-message []
+  (let [message (.-value (.getElementById js/document "message"))]
+    (post-message message)))
+
 (defn logout-user [user]
   (swap! app-state dissoc :user :email :twitter))
 
@@ -101,7 +125,6 @@
                      (lower-case)
                      (md5) ))
       ("http://http://www.gravatar.com/avatar/00000000000000000000000000000000")))
-
 
 ;; ----------------------------------------
 (defn init [template]
@@ -124,7 +147,11 @@
    [:a.join-btn]  (listen :onClick #(do (.preventDefault %)
                                         (join-room (keyword-to-string (first room-vect)))))})
 
-;;; We can manipulate these templates once we begin storing data
+(defsnippet chat-message-snippet "public/room.html" [:tr.chat-message]
+  [msg-vect]
+  {[:span.author] (content (:author (second msg-vect)))
+   [:span.message] (content (:message (second msg-vect)))})
+;; ----------------------------------------
 (deftemplate intro "public/intro.html" [data]
   {[:#submit-btn] (listen :onClick (default-action login-user))})
 
@@ -142,7 +169,9 @@
 
 (deftemplate room "public/room.html" [data] 
   {[:a.back-btn] (listen :onClick (default-action exit-room))
-   [:span#room-name] (content (:selected-room data))})
+   [:span#room-name] (content (:selected-room data))
+   [:tr.chat-message] (substitute (map chat-message-snippet (:msg-vect data)))
+   [:button#send] (listen :onClick (default-action send-message))})
 
 (defn join-view [data owner]
   (reify
@@ -154,12 +183,22 @@
       (println "ROOMS data is" data)
       (om/build (init join) data))))
 
+(defn room-view [data owner]
+  (reify
+    om/IWillMount
+    (will-mount [_]
+      (get-messages))
+    om/IRender
+    (render [_]
+      (println "Messages are " data)
+      (om/build (init room) data))))
+
 (defn page-view [data owner]
   (reify
     om/IRender
     (render [_]
       (if (:selected-room data)
-        (om/build (init room) data)
+        (om/build room-view data)
         (if (:user data)
           (om/build join-view data)
           (om/build (init intro) data) )))))

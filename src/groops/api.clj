@@ -2,7 +2,7 @@
   (:require [clojure.data.json :as json]
             [compojure.core :refer :all]
             [groops.data :as data]
-            [liberator.core :refer [resource]]))
+            [liberator.core :refer [resource defresource]]))
 
 (def post-user
   (resource :allowed-methods [:post]
@@ -31,11 +31,30 @@
                          (println "GET /api/rooms")
                          {:room-count-map (data/get-room-count-map)})))
 
+(defresource get-messages [room]
+  :allowed-methods [:get]
+  :available-media-types ["application/json"]
+  :handle-ok (fn [_]
+               (println "get-messages response: " {:msg-vect (data/get-messages room)})
+               {:msg-vect (data/get-messages room)}))
+
+(def post-message
+  (resource :allowed-methods [:post]
+            :available-media-types ["application/json"]
+            :handle-created :created-message
+            :post! (fn [ctx]
+                     (let [{:keys [room user message]} (get-in ctx [:request :params])]
+                       (println "POST /api/room/message room:" room "user:" user)
+                       (data/push-message room user message)
+                       {:created-message {:room room :user user :message message}}))))
+
 (defroutes api-routes
   (context "/api" []
            (POST "/user" [] post-user)
            (POST "/room" [] post-room)
-           (GET "/rooms" [] get-rooms)))
+           (GET "/rooms" [] get-rooms)
+           (GET "/room/messages/:room" [room] (get-messages room))
+           (POST "/room/message" [] post-message)))
 
 
 
