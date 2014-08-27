@@ -44,26 +44,26 @@
                                (println "ERROR!" response))}))
 
 (defn get-rooms []
-    (ajax/GET "/api/rooms"
-              {:format (ajax/json-format {:keywords? true})
-               :error-handler (fn [response]
-                                (println "get-rooms ERROR!" response))
-               :handler (fn [response]
-                          ;;(println "GET ROOMS" response)
-                          ;;(println "--" (:rooms-list response))
-                          (swap! app-state assoc 
-                                 :room-count-map (:room-count-map response))
-                          (println "APP STATE IS " app-state))}))
-
-(defn get-messages []
-  (ajax/GET (str "api/room/messages/" (:selected-room @app-state))
+  (ajax/GET "/api/rooms"
             {:format (ajax/json-format {:keywords? true})
              :error-handler (fn [response]
-                              (println "get-message ERROR!" response)
-                              )
+                              (println "get-rooms ERROR!" response))
              :handler (fn [response]
-                        (println "GET MESSAGES:" response)
-                        (println "--" (:messages response))
+                        ;;(println "GET ROOMS" response)
+                        ;;(println "--" (:rooms-list response))
+                        (swap! app-state assoc 
+                               :room-count-map (:room-count-map response))
+                        #_(println "APP STATE IS " app-state))}))
+
+(defn get-messages []
+  (ajax/GET "api/room/messages/Alpha" 
+            {:format (ajax/json-format {:keywords? true})
+             :error-handler (fn [response]
+                              (println "get-message ERROR!" response))
+             :handler (fn [response]
+                       ;; (println ":get-messages :selected-room" (:selected-room @app-state))
+                       ;; (println "GET MESSAGES:" response)
+                       ;; (println "--" (:msg-vect response))
                         (swap! app-state assoc :msg-vect (:msg-vect response)))}))
 
 (defn post-room [room-name]
@@ -83,7 +83,8 @@
                        :message message}
               :format (ajax/json-format {:keywords? true})
               :handler (fn [resp]
-                         (println "POST-MESSAGE resp" resp))
+                         (println "POST-MESSAGE resp" resp)
+                         (get-messages))
               :error-handler (fn [response]
                                (println "POST-MESSAGE ERROR!:" response))}))
 
@@ -148,12 +149,8 @@
 
 (defsnippet chat-message-snippet "public/room.html" [:tr.chat-message]
   [msg-vect]
-  {[:span.author] (content #(if (msg-vect)
-                              (:user (second msg-vect))
-                              nil))
-   [:span.message] (content #(if (msg-vect)
-                               (:message (second msg-vect))
-                               nil))})
+  {[:span.author] (content (:author (second msg-vect)))
+   [:span.message] (content (:message (second msg-vect)))})
 ;; ----------------------------------------
 (deftemplate intro "public/intro.html" [data]
   {[:#submit-btn] (listen :onClick (default-action login-user))})
@@ -173,7 +170,7 @@
 (deftemplate room "public/room.html" [data] 
   {[:a.back-btn] (listen :onClick (default-action exit-room))
    [:span#room-name] (content (:selected-room data))
-   [:tr.chat-message] (content (map chat-message-snippet (:msg-vect data)))
+   [:tr.chat-message] (substitute (map chat-message-snippet (:msg-vect data)))
    [:button#send] (listen :onClick (default-action send-message))})
 
 (defn join-view [data owner]

@@ -26,7 +26,7 @@
 (defn create-room [room]
   (try
     (swap! room-set assoc room {:user-vect (atom (sorted-set))
-                                :msg-vect (atom [])})
+                                :msg-vect (atom (sorted-map))})
     (catch Exception e (str "create-room exception: " e))))
 
 (defn get-rooms-list []
@@ -69,13 +69,18 @@
 (defn push-message [room user message]
   (try
     (swap! (:msg-vect (get-room-map room))
-           conj [(java.util.Date.)
-                 {:author user :message message}])
+           conj { (str (java.util.Date.))
+                  {:author user :message message}})
     (catch Exception e (str "push-message exception: " e))))
 
 (defn get-messages [room]
   (try
-    {:msg-vect (room @room-set)}
+    (let [msg-vect (deref (:msg-vect (get-room-map room)))
+          range-vect (map keyword (map str (range (count msg-vect))))
+          vals-vect (vals msg-vect)]
+      ;;(reduce conj (sorted-map) (zipmap range-vect vals-vect))
+      msg-vect
+      )
     (catch Exception e (str "get-messages exception: " e))))
 
 (defn get-users-in-room [room]
