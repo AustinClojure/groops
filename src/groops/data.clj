@@ -73,6 +73,11 @@
                  {:author user :message message}])
     (catch Exception e (str "push-message exception: " e))))
 
+(defn get-messages [room]
+  (try
+    (:msg-vect (room @room-set))
+    (catch Exception e (str "get-messages exception: " e))))
+
 (defn get-users-in-room [room]
   (try
     (if-let [user-vector (:user-vect (get-room-map room))]

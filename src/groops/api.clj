@@ -31,11 +31,30 @@
                          (println "GET /api/rooms")
                          {:room-count-map (data/get-room-count-map)})))
 
+(def get-messages
+  (resource :allowed-methods [:get]
+            :available-media-types ["application/json"]
+            :handle-ok (fn [room]
+                         (println "GET /api/room/messages/" room)
+                         {:msg-vect (data/get-messages room)})))
+
+(def post-message
+  (resource :allowed-methods [:post]
+            :available-media-types ["application/json"]
+            :handle-created :created-message
+            :post! (fn [ctx]
+                     (let [{:keys [room user message]} (get-in ctx [:request :params])]
+                       (println "POST /api/room/message room:" room "user:" user)
+                       (data/push-message room user message)
+                       {:created-message {:room room :user user :message message}}))))
+
 (defroutes api-routes
   (context "/api" []
            (POST "/user" [] post-user)
            (POST "/room" [] post-room)
-           (GET "/rooms" [] get-rooms)))
+           (GET "/rooms" [] get-rooms)
+           (GET "room/messages/:room")
+           (POST "/room/message" [] post-message)))
 
 
 
