@@ -66,11 +66,11 @@
     (swap! (:user-vect (get-room-map room)) disj user-name)
     (catch Exception e (str "remove-user-from-room exception: " e))))
 
-(defn push-message [room user message]
+(defn push-message [room user message gravatar-url]
   (try
     (swap! (:msg-vect (get-room-map room))
            conj { (str (java.util.Date.))
-                  {:author user :message message}})
+                  {:author user :message message :gravatar-url gravatar-url}})
     (catch Exception e (str "push-message exception: " e))))
 
 (defn get-messages [room]
