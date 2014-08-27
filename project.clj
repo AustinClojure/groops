@@ -12,6 +12,7 @@
                  [ring/ring-core "1.1.8"]
                  [ring/ring-json "0.3.1"]
                  [liberator "0.12.1"]
+                 [enlive "1.1.5"]
 
                  ;; clojurescript
                  [org.clojure/clojurescript "0.0-2280"]
@@ -25,7 +26,8 @@
                  [cider/cider-nrepl "0.7.0"]
                  [cljs-hash "0.0.2"]]
 
-  :plugins [[lein-cljsbuild "1.0.3"]]
+  :plugins [[com.cemerick/austin "0.1.5"]
+            [lein-cljsbuild "1.0.3"]]
   :resource-paths ["resources"]
   :cljsbuild {:builds
               [{:source-paths ["src-cljs"]
@@ -37,6 +39,7 @@
                            :pretty-print true}}]}
 
   :profiles {:dev {:dependencies [[javax.servlet/servlet-api "2.5"]
-                                  [ring-mock "0.1.5"]]}}
+                                  [ring-mock "0.1.5"]]
+                   :repl-options {:init-ns "groops.web"}}}
 
   :aliases {"server"  ["trampoline" "run" "-m" "groops.server"]})

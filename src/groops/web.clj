@@ -1,6 +1,8 @@
 (ns groops.web
   (:require [compojure.core :refer :all]
             [compojure.route :as route]
+            [net.cgrand.enlive-html :as html]
+            [groops.brepl :refer (brepl brepl-injection)]
             [groops.api :as api]
             [groops.async :as async]
             [groops.middleware :refer [basic-site]]
@@ -10,9 +12,14 @@
   (-> (redirect-after-post "/join")
       (assoc :session (register-user name email twitter))))
 
+(html/deftemplate landing-page "public/home.html" 
+  [req]
+  [:body] (brepl-injection))
+
 (defroutes app-routes
   (GET "/ws" [] async/ws)
   api/api-routes
+  (GET "/" [req] (landing-page req))
   (GET "/" [] (-> (resource-response "public/home.html")
                   (content-type "text/html")))
   (route/resources "/")
