@@ -12,8 +12,8 @@
 ;;            :msg-vect [<time> {:author <user>
 ;;                               :message <message>} ] } }
 
-(def registry-set (atom #{}))
-(def room-set (atom (sorted-map)))
+(defonce registry-set (atom #{}))
+(defonce room-set (atom (sorted-map)))
 
 (defn register-user [user email handle]
   (try
@@ -69,17 +69,15 @@
     (catch Exception e (str "remove-user-from-room exception: " e))))
 
 (defn push-message [room user message gravatar-url]
-  (try
-    (let [room-map (get-room-map room)
-          message-map {;;(str (java.util.UUID/randomUUID))
-                       (str (deref (:msg-count room-map)))
-                       {:author user :message message :gravatar-url gravatar-url
-                        :time-posted (str (java.util.Date.))
-                        :msg-number (deref (:msg-count room-map))}}]
-      (swap! (:msg-vect room-map) conj message-map)
-      (swap! (:msg-count room-map) inc)
-      (async/send-message message-map room))
-    (catch Exception e (str "push-message exception: " e))))
+  (let [room-map (get-room-map room)
+        message-num (deref (:msg-count room-map))
+        message-map {(str message-num)
+                     {:author user :message message :gravatar-url gravatar-url
+                      :time-posted (str (java.util.Date.))
+                      :msg-number message-num}}]
+    (swap! (:msg-vect room-map) conj message-map)
+    (swap! (:msg-count room-map) inc)
+    (async/send-message message-map room)))
 
 (defn get-messages [room]
   (try

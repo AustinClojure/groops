@@ -38,7 +38,8 @@
       (when-let [ch (om/get-shared owner :chan)]
         (go (loop []
               (when-let [v (<! ch)]
-                (.send (om/get-state owner :socket) v)
+                (js/console.log "WS/send" (js/JSON.stringify (clj->js v)))
+                (.send (om/get-state owner :socket) (js/JSON.stringify (clj->js v)))
                 (recur))))))
 
     om/IWillUnmount

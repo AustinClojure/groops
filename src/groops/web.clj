@@ -13,7 +13,7 @@
 
 (defroutes app-routes
   (GET "/" [] landing-page)
-  (GET "/ws/chat" [] async/chat-ws)
+  (GET "/ws/chat" [] async/ws-chat)
   api/api-routes
   (route/resources "/")
   (route/resources "/js" {:root "react"})
