@@ -1,5 +1,6 @@
 (ns groops.data
-  (:require [clojure.set :refer (index)]))
+  (:require [clojure.set :refer (index)]
+            [groops.async :as async]))
 
 ;; Using atoms until datomic is setup
 ;; registry-set
@@ -14,7 +15,7 @@
 (def registry-set (atom #{}))
 (def room-set (atom (sorted-map)))
 
-(defn register-user [user email handle]
+(defn register-user [user email handle] 
   (try
     (let [new-user {:user-name user :email-address email :twitter handle}]
       (swap! registry-set conj {:user-name user
@@ -26,7 +27,8 @@
 (defn create-room [room]
   (try
     (swap! room-set assoc room {:user-vect (atom (sorted-set))
-                                :msg-vect (atom (sorted-map))})
+                                :msg-vect (atom (sorted-map))
+                                :msg-count (atom 0)})
     (catch Exception e (str "create-room exception: " e))))
 
 (defn get-rooms-list []
@@ -68,19 +70,20 @@
 
 (defn push-message [room user message gravatar-url]
   (try
-    (swap! (:msg-vect (get-room-map room))
-           conj { (str (java.util.Date.))
-                  {:author user :message message :gravatar-url gravatar-url}})
+    (let [room-map (get-room-map room)
+          message-map {;;(str (java.util.UUID/randomUUID))
+                       (str (deref (:msg-count room-map)))
+                       {:author user :message message :gravatar-url gravatar-url
+                        :time-posted (str (java.util.Date.))
+                        :msg-number (deref (:msg-count room-map))}}]
+      (swap! (:msg-vect room-map) conj message-map)
+      (swap! (:msg-count room-map) inc)
+      (async/send-message message-map room))
     (catch Exception e (str "push-message exception: " e))))
 
 (defn get-messages [room]
   (try
-    (let [msg-vect (deref (:msg-vect (get-room-map room)))
-          range-vect (map keyword (map str (range (count msg-vect))))
-          vals-vect (vals msg-vect)]
-      ;;(reduce conj (sorted-map) (zipmap range-vect vals-vect))
-      msg-vect
-      )
+    (deref (:msg-vect (get-room-map room)))
     (catch Exception e (str "get-messages exception: " e))))
 
 (defn get-users-in-room [room]
