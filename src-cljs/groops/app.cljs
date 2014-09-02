@@ -1,36 +1,47 @@
 (ns groops.app
-  (:require [ajax.core :as ajax]
-            [kioo.om :refer [content set-style set-attr do-> substitute listen]]
-            [kioo.core :refer [handle-wrapper]]
-            [om.core :as om :include-macros true]
-            [om.dom :as dom :include-macros true]
-            [cljs-hash.md5 :refer [md5]]
-            [clojure.string :refer [trim lower-case replace replace-first]]
-            [clojure.browser.repl])
+  (:require  [clojure.browser.repl]
+             [ajax.core :as ajax]
+             [kioo.om :refer [content set-style set-attr do-> substitute listen]]
+             [kioo.core :refer [handle-wrapper]]
+             [om.core :as om :include-macros true]
+             [om.dom :as dom :include-macros true]
+             [cljs-hash.md5 :refer [md5]]
+             [clojure.string :refer [trim lower-case replace replace-first]]
+             [cljs.reader :refer [read-string]])
   (:require-macros [kioo.om :refer [defsnippet deftemplate]]))
 
 (enable-console-print!)
 
-(comment
-  (def view-atom (atom nil))
-
-  (println "The current path is:" (.-pathname (.-location js/window)) )
-
-  (def ws-url (str "ws://" (.-host js/location) "/ws"))
-  (println "WebSocket destination is" ws-url)
-  (def socket (js/WebSocket. ws-url))
-
-  (set! (.-onmessage socket)
-        (fn [event]
-          (let [json-data (.parse js/JSON (.-data event))
-                data      (js->clj json-data :keywordize-keys true)]
-            ;;(println "socket.onmessage->json-data:" json-data)
-            ;;(println "socket.onmessage->data:" data)
-            (reset! view-atom data)))))
-
-
 ;; ----------------------------------------
 (def app-state (atom {}))
+
+;; ----------------------------------------
+
+(def ws-url (str "ws://" (.-host js/location) "/chat-ws"))
+(def socket (js/WebSocket. ws-url))
+
+(defn update-socket [data]
+  (let [name (get-in data [:user :name])
+        email (get-in data [:user :email])
+        room (:selected-room data)]
+    (.send socket {:name name :email email :room room})))
+
+(set! (.-onopen socket)
+      (fn [event]
+        (println "WebSocket connected. Destination: " ws-url)))
+
+;; The keys are all ints, so sort them such that :10 > :2
+(defn msg-comparator [key1 key2] (compare (read-string (name key1)) 
+                                          (read-string (name key2))))
+
+(set! (.-onmessage socket)
+      (fn [event]
+        (let [json-data (.parse js/JSON (.-data event))
+              data (js->clj json-data :keywordize-keys true)  
+              sorted-message-map (into (sorted-map-by msg-comparator) 
+                                       (conj (:msg-vect @app-state) data))]
+          ;;(println "socket.onmessage data:" data) 
+          (swap! app-state assoc :msg-vect sorted-message-map))))
 
 ;; ----------------------------------------
 (defn post-user [name email twitter]
@@ -40,7 +51,9 @@
                        :twitter twitter}
               :format (ajax/json-format {:keywords? true})
               :handler (fn [user]
-                         (swap! app-state assoc :user user))
+                         (do
+                           (swap! app-state assoc :user user)
+                           (update-socket @app-state)))
               :error-handler (fn [response]
                                (println "ERROR!" response))}))
 
@@ -50,11 +63,8 @@
              :error-handler (fn [response]
                               (println "get-rooms ERROR!" response))
              :handler (fn [response]
-                        ;;(println "GET ROOMS" response)
-                        ;;(println "--" (:rooms-list response))
                         (swap! app-state assoc 
-                               :room-count-map (:room-count-map response))
-                        #_(println "APP STATE IS " app-state))}))
+                               :room-count-map (:room-count-map response)))}))
 
 (defn get-messages []
   (ajax/GET (str  "api/room/messages/" (:selected-room @app-state)) 
@@ -62,17 +72,15 @@
              :error-handler (fn [response]
                               (println "get-message ERROR!" response))
              :handler (fn [response]
-                       ;; (println ":get-messages :selected-room" (:selected-room @app-state))
-                       ;; (println "GET MESSAGES:" response)
-                       ;; (println "--" (:msg-vect response))
-                        (swap! app-state assoc :msg-vect (:msg-vect response)))}))
+                         (let [msg-vector (:msg-vect response)
+                               sorted-message-map (into (sorted-map-by msg-comparator) msg-vector)]
+                          (swap! app-state assoc :msg-vect sorted-message-map)))}))
 
 (defn post-room [room-name]
   (ajax/POST "/api/room"
              {:params {:room-name room-name}
               :format (ajax/json-format {:keywords? true})
               :handler (fn [resp]
-                         (println "POST-ROOMS resp" resp)
                          (get-rooms))
               :error-handler (fn [response]
                                (println "post-room ERROR!" response))}))
@@ -85,8 +93,7 @@
                        :gravatar-url (:gravatar-url @app-state)}
               :format (ajax/json-format {:keywords? true})
               :handler (fn [resp]
-                         (println "POST-MESSAGE resp" resp)
-                         (get-messages))
+                         (println "POST-MESSAGE resp" resp))
               :error-handler (fn [response]
                                (println "POST-MESSAGE ERROR!:" response))}))
 
@@ -96,7 +103,8 @@
         email (.-value (.getElementById js/document "email"))
         twitter (.-value (.getElementById js/document "twitter"))]
     (if (and (not (= name "")) (not (= email "")))
-      (post-user name email twitter)
+      (do
+        (post-user name email twitter))
       (js/alert "Please complete the name and email fields"))))
 
 (defn create-room []
@@ -105,38 +113,42 @@
 
 (defn join-room [room-name]
   (do
-    (println "Joining Room: " room-name))
-    (swap! app-state assoc :selected-room room-name))
+    (println "Joining Room: " room-name)
+    (swap! app-state assoc :selected-room room-name)
+    (update-socket @app-state)))
 
 (defn exit-room []
   (do
     (println "Exiting Room!")
-    (swap! app-state dissoc :selected-room)))
+    (swap! app-state dissoc :selected-room)
+    (update-socket @app-state)))
 
 (defn send-message []
   (let [message (.-value (.getElementById js/document "message"))]
     (post-message message)))
 
 (defn logout-user [user]
-  (swap! app-state dissoc :user :email :twitter))
+  (do
+    (swap! app-state dissoc :user :email :twitter)
+    (update-socket @app-state)))
 
-(defn gravatar [email]
+(defn gravatar [email] 
   (if email 
     (do
       (swap! app-state assoc :gravatar-url (str "http://www.gravatar.com/avatar/"
-                                   (-> email
-                                       (trim)
-                                       (lower-case)
-                                       (md5))))
+                                                (-> email
+                                                    (trim)
+                                                    (lower-case)
+                                                    (md5))))
       (str "http://www.gravatar.com/avatar/"
-                                   (-> email
-                                       (trim)
-                                       (lower-case)
-                                       (md5))))
+           (-> email
+               (trim)
+               (lower-case)
+               (md5))))
     (do
       (swap! app-state assoc :gravatar-url              
-             ("http://http://www.gravatar.com/avatar/00000000000000000000000000000000"))
-      ("http://http://www.gravatar.com/avatar/00000000000000000000000000000000"))))
+             ("http://www.gravatar.com/avatar/00000000000000000000000000000000"))
+      ("http://www.gravatar.com/avatar/00000000000000000000000000000000"))))
 
 ;; ----------------------------------------
 (defn init [template]
@@ -198,7 +210,7 @@
       (get-rooms))
     om/IRender
     (render [_]
-      (println "ROOMS data is" data)
+      ;;(println "ROOMS data is" data)
       (om/build (init join) data))))
 
 (defn room-view [data owner]
@@ -208,7 +220,7 @@
       (get-messages))
     om/IRender
     (render [_]
-      (println "Messages are " data)
+      ;;(println "Messages are " data)
       (om/build (init room) data))))
 
 (defn page-view [data owner]

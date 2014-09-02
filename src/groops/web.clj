@@ -18,6 +18,7 @@
 
 (defroutes app-routes
   (GET "/ws" [] async/ws)
+  (GET "/chat-ws" [] async/chat-ws)
   api/api-routes
   (GET "/" [req] (landing-page req))
   (GET "/" [] (-> (resource-response "public/home.html")
