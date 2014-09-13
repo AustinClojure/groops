@@ -12,7 +12,7 @@
   (-> (redirect-after-post "/join")
       (assoc :session (register-user name email twitter))))
 
-(html/deftemplate landing-page "public/home.html" 
+(html/deftemplate landing-page "public/home.html"
   [req]
   [:body] (brepl-injection))
 

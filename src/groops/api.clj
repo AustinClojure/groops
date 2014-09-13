@@ -43,11 +43,11 @@
             :available-media-types ["application/json"]
             :handle-created :created-message
             :post! (fn [ctx]
-                     (let [{:keys [room user message gravatar-url]} 
+                     (let [{:keys [room user message gravatar-url]}
                            (get-in ctx [:request :params])]
                        (println "POST /api/room/message room:" room "user:" user "gravatar-url" gravatar-url)
                        (data/push-message room user message gravatar-url)
-                       {:created-message {:room room :user user 
+                       {:created-message {:room room :user user
                                           :message message :gravatar-url gravatar-url}}))))
 
 (defroutes api-routes

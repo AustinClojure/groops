@@ -15,7 +15,7 @@
 (def registry-set (atom #{}))
 (def room-set (atom (sorted-map)))
 
-(defn register-user [user email handle] 
+(defn register-user [user email handle]
   (try
     (let [new-user {:user-name user :email-address email :twitter handle}]
       (swap! registry-set conj {:user-name user
