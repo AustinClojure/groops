@@ -29,7 +29,7 @@
     (on-receive channel (fn [data]
                          (println "on-receive channel:" channel " data:" data)
                          (swap! chat-clients assoc-in [channel] (read-string data))
-                         (println "chat-ws chat-clients" @chat-clients))))) 
+                         (println "chat-ws chat-clients" @chat-clients)))))
 
 (defn send-level []
   (let [level          (int (rand 100))
@@ -47,7 +47,7 @@
         message-string (generate-string message-map)]
     (when (seq channels-to-room)
       (println "sending message: " message-map "to" (count channels-to-room) "channels")
-      (doseq [channel channels-to-room] 
+      (doseq [channel channels-to-room]
         (send! channel message-string false)))))
 
 ;; TODO this should be core.async

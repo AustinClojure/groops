@@ -21,7 +21,8 @@
   (let [app (-> web/app
                 ;;wrap-content-type
                 wrap-reload)]
-    (run-server app {:port http-port})))
+    (run-server app {:port http-port
+                     :ip "127.0.0.1"})))
 
 (defn -main [& args]
   (try

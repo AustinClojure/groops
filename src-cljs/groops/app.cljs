@@ -11,7 +11,6 @@
   (:require-macros [kioo.om :refer [defsnippet deftemplate]]))
 
 (enable-console-print!)
-
 ;; ----------------------------------------
 (def app-state (atom {}))
 
@@ -31,16 +30,16 @@
         (println "WebSocket connected. Destination: " ws-url)))
 
 ;; The keys are all ints, so sort them such that :10 > :2
-(defn msg-comparator [key1 key2] (compare (read-string (name key1)) 
+(defn msg-comparator [key1 key2] (compare (read-string (name key1))
                                           (read-string (name key2))))
 
 (set! (.-onmessage socket)
       (fn [event]
         (let [json-data (.parse js/JSON (.-data event))
-              data (js->clj json-data :keywordize-keys true)  
-              sorted-message-map (into (sorted-map-by msg-comparator) 
+              data (js->clj json-data :keywordize-keys true)
+              sorted-message-map (into (sorted-map-by msg-comparator)
                                        (conj (:msg-vect @app-state) data))]
-          ;;(println "socket.onmessage data:" data) 
+          ;;(println "socket.onmessage data:" data)
           (swap! app-state assoc :msg-vect sorted-message-map))))
 
 ;; ----------------------------------------
@@ -63,11 +62,11 @@
              :error-handler (fn [response]
                               (println "get-rooms ERROR!" response))
              :handler (fn [response]
-                        (swap! app-state assoc 
+                        (swap! app-state assoc
                                :room-count-map (:room-count-map response)))}))
 
 (defn get-messages []
-  (ajax/GET (str  "api/room/messages/" (:selected-room @app-state)) 
+  (ajax/GET (str  "api/room/messages/" (:selected-room @app-state))
             {:format (ajax/json-format {:keywords? true})
              :error-handler (fn [response]
                               (println "get-message ERROR!" response))
@@ -132,8 +131,8 @@
     (swap! app-state dissoc :user :email :twitter)
     (update-socket @app-state)))
 
-(defn gravatar [email] 
-  (if email 
+(defn gravatar [email]
+  (if email
     (do
       (swap! app-state assoc :gravatar-url (str "http://www.gravatar.com/avatar/"
                                                 (-> email
@@ -146,7 +145,7 @@
                (lower-case)
                (md5))))
     (do
-      (swap! app-state assoc :gravatar-url              
+      (swap! app-state assoc :gravatar-url
              ("http://www.gravatar.com/avatar/00000000000000000000000000000000"))
       ("http://www.gravatar.com/avatar/00000000000000000000000000000000"))))
 
@@ -176,7 +175,7 @@
 
 (defsnippet chat-message-snippet "public/room.html" [:tr.chat-message]
   [msg-vect]
-  {[:img] (set-attr :src (:gravatar-url (second msg-vect))) 
+  {[:img] (set-attr :src (:gravatar-url (second msg-vect)))
    [:span.author] (content (:author (second msg-vect)))
    [:span.message] (content (:message (second msg-vect)))})
 ;; ----------------------------------------
@@ -195,7 +194,7 @@
    [:#create-room-btn] (listen :onClick (default-action create-room))
    [:tbody.room-table] (substitute (map room-item-snippet (:room-count-map data)))})
 
-(deftemplate room "public/room.html" [data] 
+(deftemplate room "public/room.html" [data]
   {[:a.back-btn] (listen :onClick (default-action exit-room))
    [:span#room-name] (content (:selected-room data))
    [:tr.chat-message] (substitute (map chat-message-snippet (:msg-vect data)))
