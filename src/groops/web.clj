@@ -8,17 +8,13 @@
             [groops.middleware :refer [basic-site]]
             [ring.util.response :refer [content-type resource-response]]))
 
-#_(defn register [name email twitter]
-  (-> (redirect-after-post "/join")
-      (assoc :session (register-user name email twitter))))
-
 (html/deftemplate landing-page "public/home.html"
   [req]
   [:body] (brepl-injection))
 
 (defroutes app-routes
-  (GET "/ws" [] async/ws)
-  (GET "/chat-ws" [] async/chat-ws)
+  (GET "/ws/old" [] async/ws)
+  (GET "/ws/chat" [] async/chat-ws)
   api/api-routes
   (GET "/" [req] (landing-page req))
   (GET "/" [] (-> (resource-response "public/home.html")
