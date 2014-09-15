@@ -16,7 +16,7 @@
 
 ;; ----------------------------------------
 
-(def ws-url (str "ws://" (.-host js/location) "/chat-ws"))
+(def ws-url (str "ws://" (.-host js/location) "/ws/chat"))
 (def socket (js/WebSocket. ws-url))
 
 (defn update-socket [data]
