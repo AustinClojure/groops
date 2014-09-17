@@ -7,10 +7,16 @@
              [om.dom :as dom :include-macros true]
              [cljs-hash.md5 :refer [md5]]
              [clojure.string :refer [trim lower-case replace replace-first]]
-             [cljs.reader :refer [read-string]])
+             [cljs.reader :refer [read-string]]
+             [figwheel.client :as fw :include-macros true])
   (:require-macros [kioo.om :refer [defsnippet deftemplate]]))
 
 (enable-console-print!)
+
+(fw/watch-and-reload
+  :websocket-url   "ws://localhost:3449/figwheel-ws"
+  :jsload-callback (fn [] (print "reloaded")))
+
 ;; ----------------------------------------
 (def app-state (atom {}))
 
