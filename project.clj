@@ -41,6 +41,6 @@
 
   :profiles {:dev {:dependencies [[javax.servlet/servlet-api "2.5"]
                                   [ring-mock "0.1.5"]]
-                   :repl-options {:init-ns "roops.web}}}
+                   :repl-options {:init-ns groops.web}}}
 
   :aliases {"server"  ["trampoline" "run" "-m" "groops.server"]})
