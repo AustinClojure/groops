@@ -4,8 +4,15 @@
 /checkouts
 pom.xml
 pom.xml.asc
+*~
+*.bak
 *.jar
 *.class
 /.lein-*
 /.nrepl-port
 resources/generated/
+.floo
+.flooignore
+.repl/
+/out
+resources/public/scripts
