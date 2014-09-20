@@ -1,5 +1,3 @@
-[![Build Status](https://travis-ci.org/DeltaAlphaRho/groops.svg?branch=master)](https://travis-ci.org/DeltaAlphaRho/groops)
-
 groops
 ======
 
@@ -37,5 +35,12 @@ Type `:cljs/quit` to stop the ClojureScript REPL
 cljs.user> (js/alert "hi")
 ;; => nil
 ;; you may need to refresh your browser at this point
-cljs.user> 
+
+cljs.user> (ns groops.app)
+;; => nil
+
+groops.app> @app-state
+;; => {:user {:name "John Smith", :email "John.Smith@gmail.com", :twitter "@JohnSmith"}, :gravatar-url "http://www.gravatar.com/avatar/1c874909e198bf87d38b50ef7e4d3163", :room-count-map {:Alpha 0, :Beta 0, :Delta 0, :Gamma 0}}
+
+groops.app> 
 ```
