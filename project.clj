@@ -35,15 +35,17 @@
   :cljsbuild {:builds
               [{:source-paths ["src-cljs"]
                 :compiler {
-                           :output-to "resources/generated/js/groops.js"
-                           :output-dir "resources/generated/js"
+                           :output-to "resources/public/scripts/compiled/groops.js"
+                           :output-dir "resources/public/scripts/compiled"
                            :optimizations :none
                            ;;:source-map "resources/generated/js/groops.js.map"
-                           :pretty-print true}}]}
+                           :pretty-print true
+                           :source-map true}}]}
 
   :profiles {:dev {:dependencies [[javax.servlet/servlet-api "2.5"]
                                   [ring-mock "0.1.5"]]
                    :repl-options {:init-ns groops.web}}}
 
   :aliases {"server"  ["trampoline" "run" "-m" "groops.server"]}
-  :figwheel {:http-server-root ""})
+  :figwheel {:http-server-root "public"
+             :server-port 3449})
