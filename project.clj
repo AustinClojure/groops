@@ -33,7 +33,8 @@
             [lein-figwheel "0.1.4-SNAPSHOT"]]
   :resource-paths ["resources"]
   :cljsbuild {:builds
-              [{:source-paths ["src-cljs"]
+              [{:id "dev"
+                :source-paths ["src-cljs"]
                 :compiler {
                            :output-to "resources/generated/js/groops.js"
                            :output-dir "resources/generated/js"
@@ -46,4 +47,10 @@
                    :repl-options {:init-ns groops.web}}}
 
   :aliases {"server"  ["trampoline" "run" "-m" "groops.server"]}
-  :figwheel {:http-server-root ""})
+  :figwheel {
+             :http-server-root "generated" ;; default and assumes "resources" 
+             :server-port 3450 ;; default+1
+             ;; :css-dirs ["public/resources/css"] ;; watch and update CSS
+             ;; :ring-handler hello-figwheel.server/handler
+             }
+  )

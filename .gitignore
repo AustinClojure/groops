@@ -9,3 +9,8 @@ pom.xml.asc
 /.lein-*
 /.nrepl-port
 resources/generated/
+.repl/
+out/
+*~
+*#
+*bak

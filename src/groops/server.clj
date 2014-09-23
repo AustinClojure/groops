@@ -29,9 +29,6 @@
     (println "Starting nrepl on port" nrepl-port)
     (start-nrepl)
 
-    (println "Starting websocket client loop")
-    (async/send-loop)
-
     (println "Starting webserver on port" http-port)
     (start-webserver)
 

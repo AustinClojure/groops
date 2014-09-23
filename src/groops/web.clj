@@ -13,12 +13,9 @@
   [:body] (brepl-injection))
 
 (defroutes app-routes
-  (GET "/ws/old" [] async/ws)
   (GET "/ws/chat" [] async/chat-ws)
   api/api-routes
   (GET "/" [req] (landing-page req))
-  (GET "/" [] (-> (resource-response "public/home.html")
-                  (content-type "text/html")))
   (route/resources "/")
   (route/resources "/"   {:root "generated"})
   (route/resources "/js" {:root "react"})

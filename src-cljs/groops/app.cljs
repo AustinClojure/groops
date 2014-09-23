@@ -18,8 +18,8 @@
   :jsload-callback (fn [] (print "reloaded")))
 
 ;; ----------------------------------------
-(def app-state (atom {}))
-
+(defonce app-state (atom {})) 
+  
 ;; ----------------------------------------
 
 (def ws-url (str "ws://" (.-host js/location) "/ws/chat"))
