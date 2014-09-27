@@ -1,5 +1,6 @@
 (ns groops.brepl
   (:require [net.cgrand.enlive-html :as html]
+            [cemerick.austin]
             [cemerick.austin.repls]))
 
 (defn brepl []

@@ -15,8 +15,8 @@
 
 (fw/watch-and-reload
   :websocket-url   "ws://localhost:3449/figwheel-ws"
-  :jsload-callback (fn [] (print "reloaded")))
-
+  :jsload-callback (fn []
+                     (println "reloaded!")))
 
 ;; ----------------------------------------
 (def app-state (atom {}))
@@ -173,23 +173,24 @@
   (.focus (.getElementById js/document id)))
 
 ;; ----------------------------------------
-(defsnippet room-item-snippet "public/join.html" [:.row-item]
+(defsnippet room-item-snippet "templates/join.html" [:.row-item]
   [room-vect]
   {[:td.room-name] (content (keyword-to-string (first room-vect)))
    [:td.user-count] (content (second room-vect))
    [:a.join-btn]  (listen :onClick #(do (.preventDefault %)
                                         (join-room (keyword-to-string (first room-vect)))))})
 
-(defsnippet chat-message-snippet "public/room.html" [:tr.chat-message]
+(defsnippet chat-message-snippet "templates/room.html" [:tr.chat-message]
   [msg-vect]
   {[:img] (set-attr :src (:gravatar-url (second msg-vect)))
    [:span.author] (content (:author (second msg-vect)))
    [:span.message] (content (:message (second msg-vect)))})
+
 ;; ----------------------------------------
-(deftemplate intro "public/intro.html" [data]
+(deftemplate intro "templates/intro.html" [data]
   {[:#submit-btn] (listen :onClick (default-action login-user))})
 
-(deftemplate join "public/join.html" [data]
+(deftemplate join "templates/join.html" [data]
   {[:span.username] (content (get-in data [:user :name]))
    [:span.email] (content (get-in data [:user :email]))
    [:a#twitter] (do-> (content (get-in data [:user :twitter]))
@@ -201,7 +202,7 @@
    [:#create-room-btn] (listen :onClick (default-action create-room))
    [:tbody.room-table] (substitute (map room-item-snippet (:room-count-map data)))})
 
-(deftemplate room "public/room.html" [data]
+(deftemplate room "templates/room.html" [data]
   {[:a.back-btn] (listen :onClick (default-action exit-room))
    [:span#room-name] (content (:selected-room data))
    [:tr.chat-message] (substitute (map chat-message-snippet (:msg-vect data)))
@@ -239,5 +240,5 @@
           (om/build join-view data)
           (om/build (init intro) data) )))))
 
-
 (om/root page-view app-state {:target (.getElementById js/document "om")})
+
