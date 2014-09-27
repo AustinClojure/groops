@@ -23,7 +23,7 @@
 
                  ;; dev
                  [org.clojure/tools.nrepl "0.2.3"]
-                 [cider/cider-nrepl "0.7.0"]
+                 [cider/cider-nrepl "0.8.0-snapshot"]
                  [cljs-hash "0.0.2"]
                  [figwheel "0.1.4-SNAPSHOT"]]
 
@@ -31,21 +31,24 @@
             [lein-cljsbuild "1.0.3"]
             [lein-ring "0.8.8"]
             [lein-figwheel "0.1.4-SNAPSHOT"]]
-  :resource-paths ["resources"]
+
+  :resource-paths ["resources"
+                   "resources/generated"]
   :cljsbuild {:builds
               [{:source-paths ["src-cljs"]
                 :compiler {
-                           :output-to "resources/public/scripts/compiled/groops.js"
-                           :output-dir "resources/public/scripts/compiled"
-                           :optimizations :none
-                           ;;:source-map "resources/generated/js/groops.js.map"
-                           :pretty-print true
-                           :source-map true}}]}
+                           :output-dir "resources/generated/public/js"
+                           :output-to  "resources/generated/public/js/groops.js"
+                           :source-map "resources/generated/public/js/groops.js.map"
+                           :optimizations :none #_:whitespace
+                           :pretty-print true}}]}
 
   :profiles {:dev {:dependencies [[javax.servlet/servlet-api "2.5"]
                                   [ring-mock "0.1.5"]]
                    :repl-options {:init-ns groops.web}}}
 
-  :aliases {"server"  ["trampoline" "run" "-m" "groops.server"]}
+  :aliases {"server" ["trampoline" "run" "-m" "groops.server"]}
+
   :figwheel {:http-server-root "public"
              :server-port 3449})
+

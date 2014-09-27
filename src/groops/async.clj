@@ -9,15 +9,6 @@
 ;; { {:channel channel0 :username user0 :email email0 :room room0}
 ;;   {:channel channel1 :username user1 :email email1 :room room1} }
 
-(defn ws [req]
-  (with-channel req channel
-    (swap! clients assoc channel true)
-    (println channel "connected")
-    (on-close channel
-              (fn [status]
-                (swap! clients dissoc channel)
-                (println channel "disconnected. status: " status)))))
-
 (defn chat-ws [req]
   (with-channel req channel
     (swap! chat-clients assoc channel {:name nil :email nil :room nil})
@@ -31,15 +22,6 @@
                          (swap! chat-clients assoc-in [channel] (read-string data))
                          (println "chat-ws chat-clients" @chat-clients)))))
 
-(defn send-level []
-  (let [level          (int (rand 100))
-        message        (generate-string {:level level})
-        active-clients (keys @clients)]
-    (when (seq active-clients)
-      (println "sending level" level "to" (count active-clients) "clients")
-      (doseq [client active-clients]
-        (send! client message false)))))
-
 (defn send-message [message-map room]
   (let [client-filter-fn (fn [room] (fn [client] (if (= room (:room (val client))) true false)))
         clients-in-room (fn [room clients] (filter (client-filter-fn room) clients))
@@ -49,11 +31,4 @@
       (println "sending message: " message-map "to" (count channels-to-room) "channels")
       (doseq [channel channels-to-room]
         (send! channel message-string false)))))
-
-;; TODO this should be core.async
-(defn send-loop []
-  (future (loop []
-            (send-level)
-            (Thread/sleep 5000)
-            (recur))))
 

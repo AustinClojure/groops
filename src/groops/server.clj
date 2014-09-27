@@ -11,7 +11,6 @@
 (def nrepl-port 8030)
 (def http-port  8080)
 
-
 (defn start-nrepl []
     (nrepl/start-server :port nrepl-port
                         :bind "127.0.0.1"
@@ -28,9 +27,6 @@
   (try
     (println "Starting nrepl on port" nrepl-port)
     (start-nrepl)
-
-    (println "Starting websocket client loop")
-    (async/send-loop)
 
     (println "Starting webserver on port" http-port)
     (start-webserver)

@@ -15,4 +15,4 @@ resources/generated/
 .flooignore
 .repl/
 /out
-resources/public/scripts
+
