@@ -19,4 +19,4 @@
   (route/resources "/js" {:root "react"})
   (route/not-found "Not Found"))
 
-(def app (basic-site #'app-routes))
+(def app (basic-site app-routes))

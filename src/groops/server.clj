@@ -1,27 +1,34 @@
 (ns groops.server
   (:require [groops.async :as async]
-            [groops.web :as web]
-            [ring.middleware.content-type :refer [wrap-content-type]]
-
-            [ring.middleware.reload :refer [wrap-reload]]
+            [groops.web :refer [app]]
             [org.httpkit.server :refer [run-server]]
             [clojure.tools.nrepl.server :as nrepl]
             [cider.nrepl :as cider]))
 
-(def nrepl-port 8030)
-(def http-port  8080)
+(defonce nrepl-port 8030)
+(defonce http-port  8080)
+
+(defonce webserver (atom nil))
+(defonce nrepl-server (atom nil))
 
 (defn start-nrepl []
-    (nrepl/start-server :port nrepl-port
-                        :bind "127.0.0.1"
-                        :handler cider/cider-nrepl-handler))
+  (reset! nrepl-server  (nrepl/start-server :port nrepl-port
+                                           :bind "127.0.0.1"
+                                           :handler cider/cider-nrepl-handler)))
 
 (defn start-webserver []
-  (let [app (-> web/app
-                ;;wrap-content-type
-                wrap-reload)]
-    (run-server app {:port http-port
-                     :ip "127.0.0.1"})))
+  (reset! webserver (run-server #'app {:port http-port
+                                       :ip "127.0.0.1"})))
+
+(defn stop-webserver []
+  (when-not (nil? @webserver)
+    (@webserver :timeout 100)
+    (reset! webserver nil)))
+
+(defn restart []
+  (do
+    (stop-webserver)
+    (start-webserver)))
 
 (defn -main [& args]
   (try
