@@ -2,12 +2,15 @@
   (:require [org.httpkit.server :refer [with-channel on-close on-receive send!]]
             [cheshire.core :refer [generate-string]]))
 
+
+
 (def clients (atom {}))
 (def chat-clients (atom {}))
 
 ;; chat-clients
 ;; { {:channel channel0 :username user0 :email email0 :room room0}
 ;;   {:channel channel1 :username user1 :email email1 :room room1} }
+
 
 (defn chat-ws [req]
   (with-channel req channel

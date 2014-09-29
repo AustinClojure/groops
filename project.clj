@@ -13,18 +13,19 @@
                  [ring/ring-json "0.3.1"]
                  [liberator "0.12.1"]
                  [enlive "1.1.5"]
+                 [org.clojure/core.async "0.1.346.0-17112a-alpha"]
 
                  ;; clojurescript
                  [org.clojure/clojurescript "0.0-2280"]
-                 [om "0.7.0"]
+                 [om "0.7.3"]
                  [kioo "0.4.1-SNAPSHOT"]
                  [cljs-ajax "0.2.6"]
                  [com.facebook/react "0.11.1"]
+                 [cljs-hash "0.0.2"]
 
                  ;; dev
                  [org.clojure/tools.nrepl "0.2.3"]
                  [cider/cider-nrepl "0.8.0-snapshot"]
-                 [cljs-hash "0.0.2"]
                  [figwheel "0.1.4-SNAPSHOT"]]
 
   :plugins [[com.cemerick/austin "0.1.5"]
@@ -39,7 +40,7 @@
                 :compiler {
                            :output-dir "resources/generated/public/js"
                            :output-to  "resources/generated/public/js/groops.js"
-                           :source-map "resources/generated/public/js/groops.js.map"
+                           :source-map true
                            :optimizations :none #_:whitespace
                            :pretty-print true}}]}
 
