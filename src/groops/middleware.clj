@@ -4,7 +4,8 @@
             [ring.middleware.keyword-params :refer (wrap-keyword-params)]
             [ring.middleware.nested-params :refer (wrap-nested-params)]
             [ring.middleware.params :refer (wrap-params)]
-            [ring.middleware.session :refer (wrap-session)]))
+            [ring.middleware.session :refer (wrap-session)]
+            [ring.middleware.reload :refer [wrap-reload]]))
 
 ;;; Logging/Debugging
 (defn log-request [req]
@@ -22,4 +23,5 @@
       (wrap-nested-params)
       (wrap-params)
       (wrap-json-params)
-      (wrap-session)))
+      (wrap-session)
+      (wrap-reload)))

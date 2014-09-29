@@ -15,9 +15,8 @@
   (GET "/" [] landing-page)
   (GET "/ws/chat" [] async/chat-ws)
   api/api-routes
-
   (route/resources "/")
   (route/resources "/js" {:root "react"})
   (route/not-found "Not Found"))
 
-(def app (basic-site #'app-routes))
+(def app (basic-site app-routes))

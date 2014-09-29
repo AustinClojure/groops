@@ -36,7 +36,8 @@
   :resource-paths ["resources"
                    "resources/generated"]
   :cljsbuild {:builds
-              [{:source-paths ["src-cljs"]
+              [{:id "dev"
+                :source-paths ["src-cljs"]
                 :compiler {
                            :output-dir "resources/generated/public/js"
                            :output-to  "resources/generated/public/js/groops.js"
@@ -52,4 +53,3 @@
 
   :figwheel {:http-server-root "public"
              :server-port 3449})
-

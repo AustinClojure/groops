@@ -11,7 +11,6 @@
 ;; { {:channel channel0 :username user0 :email email0 :room room0}
 ;;   {:channel channel1 :username user1 :email email1 :room room1} }
 
-
 (defn chat-ws [req]
   (with-channel req channel
     (swap! chat-clients assoc channel {:name nil :email nil :room nil})
