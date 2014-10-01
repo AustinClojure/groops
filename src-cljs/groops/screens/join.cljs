@@ -28,15 +28,14 @@
 
    [:button.join-btn]
    (listen :onClick
-           #(let [e %
-                  room-name (name (first room-vect))
+           #(let [room-name (name (first room-vect))
                   user (:user @data)]
               (println "JOINZ")
               (when-let [ch (om/get-shared owner :chan)]
                 (println "!!! ch" ch)
-                (go (>! ch {:name (:name user)
-                            :email (:email user)
-                            :room room-name}))
+                (go (>! ch {:topic "join"
+                            :data {:user (:name user)
+                                   :room room-name}}))
 
                 (om/update! data :selected-room room-name))))})
 

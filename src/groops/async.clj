@@ -1,36 +1,50 @@
 (ns groops.async
-  (:require [org.httpkit.server :refer [with-channel on-close on-receive send!]]
-            [cheshire.core :refer [generate-string]]))
+  (:require [org.httpkit.server :as ws]
+            [cheshire.core :as json]))
 
+(defonce room-users (atom {}))
+(defonce clients (atom {}))
+(defonce chat-clients (atom {}))
 
-
-(def clients (atom {}))
-(def chat-clients (atom {}))
-
-;; chat-clients
-;; { {:channel channel0 :username user0 :email email0 :room room0}
-;;   {:channel channel1 :username user1 :email email1 :room room1} }
-
-(defn chat-ws [req]
-  (with-channel req channel
-    (swap! chat-clients assoc channel {:name nil :email nil :room nil})
-    (println channel "connected")
-    (on-close channel
-              (fn [status]
-                (swap! chat-clients dissoc channel)
-                (println channel "disconnected. status: " status)))
-    (on-receive channel (fn [data]
-                         (println "on-receive channel:" channel " data:" data)
-                         (swap! chat-clients assoc-in [channel] (read-string data))
-                         (println "chat-ws chat-clients" @chat-clients)))))
+;; ----------------------------------------
 
 (defn send-message [message-map room]
-  (let [client-filter-fn (fn [room] (fn [client] (if (= room (:room (val client))) true false)))
-        clients-in-room (fn [room clients] (filter (client-filter-fn room) clients))
-        channels-to-room (keys (clients-in-room room @chat-clients))
-        message-string (generate-string message-map)]
-    (when (seq channels-to-room)
-      (println "sending message: " message-map "to" (count channels-to-room) "channels")
-      (doseq [channel channels-to-room]
-        (send! channel message-string false)))))
+  (doseq [[user channel] (get @room-users room)]
+    (let [message (json/generate-string message-map)]
+      (println "SENDING" message "to" user)
+      (ws/send! channel message false))))
+
+;; ----------------------------------------
+(defmulti dispatch-message (fn [channel topic data] topic))
+
+(defmethod dispatch-message :default [channel topic data]
+  (println "UNKNOWN TOPIC" topic channel))
+
+(defmethod dispatch-message "join" [channel topic data]
+  (println "JOIN" data)
+  (swap! room-users (fn [clients]
+                   (assoc-in clients [(:room data) (:user data)] channel))))
+
+
+;; ----------------------------------------
+
+(defn send-to-room [room message]
+  (doseq [[user channel] (get @room-users room)]
+    (ws/send! channel (json/generate-string {:topic "joined" :data message}))))
+
+;; ----------------------------------------
+(defn ws-chat [req]
+  (ws/with-channel req channel
+    (println channel "A client connected!")
+
+    (ws/on-receive channel
+                (fn [data]
+                  (let [received (json/parse-string data true)]
+                    (dispatch-message channel (:topic received) (:data received)))))
+
+    (ws/on-close channel
+              (fn [status]
+                (println channel "disconnected. status: " status)))))
+
+
 
