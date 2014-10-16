@@ -1,35 +1,31 @@
 (ns groops.screens.room
   (:require [ajax.core :as ajax]
             [cljs.reader :refer [read-string]]
-            [groops.gravatar :as gravatar]
+            [groops.uri :as uri]
             [kioo.om :refer [content set-style set-attr do-> substitute listen]]
             [kioo.core :refer [handle-wrapper]]
             [om.core :as om :include-macros true]
             [om.dom :as dom :include-macros true])
   (:require-macros [kioo.om :refer [defsnippet deftemplate component]]))
 
-
 ;; The keys are all ints, so sort them such that :10 > :2
-(defn msg-comparator [key1 key2] (compare (read-string (name key1)) ;; XXX DANGER WILL ROBINSON
+(defn msg-comparator [key1 key2] (compare (read-string (name key1))
                                           (read-string (name key2))))
 
 (defn order-messages [msg-vector]
   (into (sorted-map-by msg-comparator) msg-vector))
 
-
-
 (defsnippet chat-message-snippet "templates/room.html" [:tr.chat-message]
   [[_ message]]
-  {[:img]          (set-attr :src (:gravatar-url message))
+  {[:img]          (set-attr :src (:gravatar-uri message))
    [:span.author]  (content (:author message))
    [:span.message] (content (:message message))})
-
 
 (defn room-view [data owner]
   (reify
     om/IWillMount
     (will-mount [_]
-      (ajax/GET (str "api/room/messages/" (:selected-room data)) ;; XXX DANGER encode!!!
+      (ajax/GET (str "api/room/messages/" (:selected-room data))
                 {:format (ajax/json-format {:keywords? true})
                  :error-handler (fn [response]
                                   (println "get-message ERROR!" response))
@@ -45,7 +41,7 @@
                            {:params {:room room
                                      :user username
                                      :message (:message state)
-                                     :gravatar-url gravatar}
+                                     :gravatar-uri gravatar}
                             :format (ajax/json-format {:keywords? true})
                             :handler (fn [resp]
                                        (println "POST-MESSAGE resp" resp))
@@ -54,12 +50,12 @@
               (send-message []
                 (let [user (:user @data)
                       name (:name user)
-                      gravatar-url (gravatar/gravatar-url (:email user))
+                      gravatar-uri (uri/gravatar-uri (:email user))
                       room (:selected-room @data)
                       message (:message state)]
                   (when (not-empty message)
                     (om/set-state! owner :message "")
-                    (post-message room name gravatar-url message))))]
+                    (post-message room name gravatar-uri message))))]
 
         (component
          "templates/room.html"
@@ -67,7 +63,7 @@
           (listen :onClick #(om/update! data :selected-room nil))
 
           [:span#room-name]
-          (content (js/decodeURIComponent (:selected-room data)))
+          (content (:selected-room data))
 
           [:tr.chat-message]
           (content (map chat-message-snippet (:messages data)))

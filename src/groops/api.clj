@@ -2,7 +2,8 @@
   (:require [clojure.data.json :as json]
             [compojure.core :refer :all]
             [groops.data :as data]
-            [liberator.core :refer [resource defresource]]))
+            [liberator.core :refer [resource defresource]]
+            [ring.util.codec :refer [url-encode]]))
 
 (def post-user
   (resource :allowed-methods [:post]
@@ -28,8 +29,12 @@
   (resource :allowed-methods [:get]
             :available-media-types ["application/json"]
             :handle-ok (fn [_]
-                         (println "GET /api/rooms")
-                         {:room-count-map (data/get-room-count-map)})))
+                         (let [room-names (data/get-rooms-list)
+                               encoded-room-names (map url-encode room-names)
+                               counts (map data/get-room-user-count room-names)]
+                             (println "GET /api/rooms")
+                             (reduce conj (sorted-map) 
+                                     (zipmap encoded-room-names counts))))))
 
 (defresource get-messages [room]
   :allowed-methods [:get]
@@ -43,12 +48,14 @@
             :available-media-types ["application/json"]
             :handle-created :created-message
             :post! (fn [ctx]
-                     (let [{:keys [room user message gravatar-url]}
+                     (let [{:keys [room user message gravatar-uri]}
                            (get-in ctx [:request :params])]
-                       (println "POST /api/room/message room:" room "user:" user "gravatar-url" gravatar-url)
-                       (data/push-message room user message gravatar-url)
-                       {:created-message {:room room :user user
-                                          :message message :gravatar-url gravatar-url}}))))
+                       (println "POST /api/room/message room:" room "user:" user "gravatar-uri" gravatar-uri)
+                       (data/push-message room user message gravatar-uri)
+                       {:created-message {:room room 
+                                          :user user
+                                          :message message 
+                                          :gravatar-uri gravatar-uri}}))))
 
 (defroutes api-routes
   (context "/api" []
@@ -57,13 +64,3 @@
            (GET "/rooms" [] get-rooms)
            (GET "/room/messages/:room" [room] (get-messages room))
            (POST "/room/message" [] post-message)))
-
-
-
-
-
-
-
-
-
-
