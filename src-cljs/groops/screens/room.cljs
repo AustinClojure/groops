@@ -42,7 +42,7 @@
     (render-state [_ state]
       (letfn [(post-message [room username gravatar message]
                 (ajax/POST (str "/api/room/message")
-                           {:params {:room room
+                           {:params {:room  room
                                      :user username
                                      :message (:message state)
                                      :gravatar-url gravatar}
@@ -67,7 +67,7 @@
           (listen :onClick #(om/update! data :selected-room nil))
 
           [:span#room-name]
-          (content (:selected-room data))
+          (content (js/decodeURIComponent (:selected-room data)))
 
           [:tr.chat-message]
           (content (map chat-message-snippet (:messages data)))
