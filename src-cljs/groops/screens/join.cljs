@@ -21,7 +21,7 @@
 (defsnippet room-item-snippet "templates/join.html" [:.row-item]
   [data owner room-vect]
   {[:td.room-name]
-   (content (name (first room-vect)))
+   (content (js/decodeURIComponent (name (first room-vect))))
 
    [:td.user-count]
    (content (second room-vect))
@@ -76,8 +76,9 @@
             create-room
             (fn [e]
               (.preventDefault e)
-              (let [room-name (:room-name state)]
+              (let [room-name (js/encodeURIComponent (:room-name state))] 
                 (when (not-empty room-name)
+                  (println "room-name: " room-name)
                   (om/set-state! owner :room-name "")
                   (post-room room-name))))]
 
