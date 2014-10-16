@@ -42,7 +42,7 @@
     (render-state [_ state]
       (letfn [(post-message [room username gravatar message]
                 (ajax/POST (str "/api/room/message")
-                           {:params {:room  room
+                           {:params {:room room
                                      :user username
                                      :message (:message state)
                                      :gravatar-url gravatar}
